@@ -45,8 +45,14 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized }: SlotProp
     </EditSlotDialog>
   );
 
-  const participantName = slot.participantName || "Empty";
-  const status = slot.status.charAt(0).toUpperCase() + slot.status.slice(1);
+  const statusMap: { [key: string]: string } = {
+    available: "Disponible",
+    reserved: "Reservado",
+    paid: "Pagado",
+  };
+
+  const participantName = slot.participantName || "Vacío";
+  const status = statusMap[slot.status];
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -55,9 +61,9 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized }: SlotProp
             {slotComponent}
         </TooltipTrigger>
         <TooltipContent>
-          <p className="font-semibold">Slot #{slot.slotNumber}</p>
-          <p>Participant: {participantName}</p>
-          <p>Status: {status}</p>
+          <p className="font-semibold">Casilla #{slot.slotNumber}</p>
+          <p>Participante: {participantName}</p>
+          <p>Estado: {status}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -30,14 +30,14 @@ export default function RaffleCard({ raffle }: RaffleCardProps) {
         <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-xl">{raffle.name}</CardTitle>
             <Badge variant={raffle.finalizedAt ? "destructive" : "secondary"}>
-                {raffle.finalizedAt ? "Finished" : "Active"}
+                {raffle.finalizedAt ? "Finalizada" : "Activa"}
             </Badge>
         </div>
         <CardDescription className="line-clamp-2">{raffle.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="flex justify-between items-center text-sm text-muted-foreground mb-2">
-            <span>Progress</span>
+            <span>Progreso</span>
             <span>{filledSlots} / 100</span>
         </div>
         <Progress value={progress} aria-label={`${progress}% of slots filled`} />
@@ -45,7 +45,7 @@ export default function RaffleCard({ raffle }: RaffleCardProps) {
       <CardFooter>
         <Button asChild className="w-full">
           <Link href={`/raffle/${raffle.id}`}>
-            View Raffle <ArrowRight className="ml-2 h-4 w-4" />
+            Ver Rifa <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </CardFooter>

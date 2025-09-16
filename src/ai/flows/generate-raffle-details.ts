@@ -1,25 +1,25 @@
 // use server'
 
 /**
- * @fileOverview AI-powered raffle detail generator.
+ * @fileOverview Generador de detalles de rifas impulsado por IA.
  *
- * - generateRaffleDetails - A function that generates a raffle name, description, and terms based on a short prompt.
- * - GenerateRaffleDetailsInput - The input type for the generateRaffleDetails function.
- * - GenerateRaffleDetailsOutput - The return type for the generateRaffleDetails function.
+ * - generateRaffleDetails - Una función que genera un nombre de rifa, descripción y términos basados en un prompt corto.
+ * - GenerateRaffleDetailsInput - El tipo de entrada para la función generateRaffleDetails.
+ * - GenerateRaffleDetailsOutput - El tipo de retorno para la función generateRaffleDetails.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateRaffleDetailsInputSchema = z.object({
-  prompt: z.string().describe('A short prompt describing the raffle.'),
+  prompt: z.string().describe('Un prompt corto que describe la rifa.'),
 });
 export type GenerateRaffleDetailsInput = z.infer<typeof GenerateRaffleDetailsInputSchema>;
 
 const GenerateRaffleDetailsOutputSchema = z.object({
-  name: z.string().describe('The generated raffle name.'),
-  description: z.string().describe('The generated raffle description.'),
-  terms: z.string().describe('The generated raffle terms and conditions.'),
+  name: z.string().describe('El nombre de la rifa generado.'),
+  description: z.string().describe('La descripción de la rifa generada.'),
+  terms: z.string().describe('Los términos y condiciones de la rifa generados.'),
 });
 export type GenerateRaffleDetailsOutput = z.infer<typeof GenerateRaffleDetailsOutputSchema>;
 
@@ -31,15 +31,15 @@ const prompt = ai.definePrompt({
   name: 'generateRaffleDetailsPrompt',
   input: {schema: GenerateRaffleDetailsInputSchema},
   output: {schema: GenerateRaffleDetailsOutputSchema},
-  prompt: `You are an AI assistant that helps raffle creators generate compelling raffle details.
+  prompt: `Eres un asistente de IA que ayuda a los creadores de rifas a generar detalles atractivos para la rifa.
 
-  Based on the following prompt, generate a raffle name, a concise and engaging description, and clear and fair terms and conditions for the raffle.
+  Basado en el siguiente prompt, genera un nombre para la rifa, una descripción concisa y atractiva, y términos y condiciones claros y justos para la rifa.
 
   Prompt: {{{prompt}}}
 
-  Name:
-  Description:
-  Terms and Conditions: `,
+  Nombre:
+  Descripción:
+  Términos y Condiciones: `,
 });
 
 const generateRaffleDetailsFlow = ai.defineFlow(

@@ -8,16 +8,16 @@ export default function Header() {
       <Link href="/" className="flex items-center justify-center">
         <Ticket className="h-6 w-6 text-primary" />
         <span className="ml-2 text-lg font-semibold font-headline">
-          Lucky 100 Raffle
+          Rifa de la Suerte 100
         </span>
       </Link>
       <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
         {/* This would be conditional based on auth state in a real app */}
         <Button variant="ghost" asChild>
-          <Link href="/login">Login</Link>
+          <Link href="/login">Iniciar Sesión</Link>
         </Button>
         <Button asChild>
-          <Link href="/signup">Sign Up</Link>
+          <Link href="/signup">Regístrate</Link>
         </Button>
       </nav>
     </header>

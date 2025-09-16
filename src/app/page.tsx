@@ -14,17 +14,15 @@ export default function Home() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-                    Create Your Perfect Raffle in Minutes
+                    Crea Tu Rifa Perfecta en Minutos
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Lucky 100 Raffle makes it simple to launch and manage
-                    100-slot raffles. Use our interactive board and AI-powered
-                    tools to get started.
+                    Rifa de la Suerte 100 simplifica el lanzamiento y la gestión de rifas de 100 casillas. Utiliza nuestro tablero interactivo y herramientas impulsadas por IA para comenzar.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
-                    <Link href="/signup">Get Started for Free</Link>
+                    <Link href="/signup">Comienza Gratis</Link>
                   </Button>
                 </div>
               </div>
@@ -40,14 +38,13 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">
-                  Key Features
+                  Características Clave
                 </div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                  Everything You Need for a Successful Raffle
+                  Todo lo que Necesitas para una Rifa Exitosa
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  From creation to drawing the winner, we've got you covered
-                  with intuitive tools and powerful features.
+                  Desde la creación hasta el sorteo del ganador, te tenemos cubierto con herramientas intuitivas y características potentes.
                 </p>
               </div>
             </div>
@@ -56,30 +53,27 @@ export default function Home() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground mb-4">
                   <Ticket className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-bold font-headline">Interactive Board</h3>
+                <h3 className="text-xl font-bold font-headline">Tablero Interactivo</h3>
                 <p className="text-muted-foreground">
-                  Easily manage all 100 slots on a visual, color-coded board.
-                  Update names and statuses with a single click.
+                  Gestiona fácilmente las 100 casillas en un tablero visual y codificado por colores. Actualiza nombres y estados con un solo clic.
                 </p>
               </div>
               <div className="grid gap-1 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground mb-4">
                   <Bot className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-bold font-headline">AI-Powered Creation</h3>
+                <h3 className="text-xl font-bold font-headline">Creación Impulsada por IA</h3>
                 <p className="text-muted-foreground">
-                  Struggling with words? Let our AI generate compelling raffle
-                  names, descriptions, and terms for you.
+                  ¿Te cuesta encontrar las palabras? Deja que nuestra IA genere nombres de rifas, descripciones y términos atractivos para ti.
                 </p>
               </div>
               <div className="grid gap-1 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground mb-4">
                   <Star className="h-8 w-8" />
                 </div>
-                <h3 className="text-xl font-bold font-headline">Secure Winner Selection</h3>
+                <h3 className="text-xl font-bold font-headline">Selección Segura del Ganador</h3>
                 <p className="text-muted-foreground">
-                  Finalize your raffle and draw a random winner with a secure,
-                  one-click transaction.
+                  Finaliza tu rifa y sortea un ganador al azar con una transacción segura de un solo clic.
                 </p>
               </div>
             </div>

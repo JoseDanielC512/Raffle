@@ -35,11 +35,11 @@ export default async function RafflePage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-                <h3 className="font-semibold mb-1">Description</h3>
+                <h3 className="font-semibold mb-1">Descripción</h3>
                 <p className="text-sm text-muted-foreground">{raffle.description}</p>
             </div>
             <div>
-                <h3 className="font-semibold mb-1">Terms & Conditions</h3>
+                <h3 className="font-semibold mb-1">Términos y Condiciones</h3>
                 <p className="text-sm text-muted-foreground">{raffle.terms}</p>
             </div>
           </CardContent>

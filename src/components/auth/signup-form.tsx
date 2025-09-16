@@ -14,19 +14,19 @@ export function SignupForm() {
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
-        <CardTitle className="text-xl font-headline">Sign Up</CardTitle>
+        <CardTitle className="text-xl font-headline">Regístrate</CardTitle>
         <CardDescription>
-          Enter your information to create an account
+          Ingresa tu información para crear una cuenta
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="first-name">Full name</Label>
+            <Label htmlFor="first-name">Nombre completo</Label>
             <Input id="first-name" placeholder="Max Robinson" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Correo electrónico</Label>
             <Input
               id="email"
               type="email"
@@ -35,17 +35,17 @@ export function SignupForm() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input id="password" type="password" />
           </div>
           <Button type="submit" className="w-full">
-            Create an account
+            Crear una cuenta
           </Button>
         </div>
         <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
+          ¿Ya tienes una cuenta?{" "}
           <Link href="/login" className="underline">
-            Login
+            Iniciar Sesión
           </Link>
         </div>
       </CardContent>

@@ -41,12 +41,12 @@ function GenerateButton() {
         {pending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating...
+            Generando...
           </>
         ) : (
           <>
             <Bot className="mr-2 h-4 w-4" />
-            Generate Details with AI
+            Generar Detalles con IA
           </>
         )}
       </Button>
@@ -62,19 +62,18 @@ export default function CreateRaffleForm() {
       <Card>
         <form action={dispatch}>
           <CardHeader>
-            <CardTitle className="font-headline">1. Describe Your Prize</CardTitle>
+            <CardTitle className="font-headline">1. Describe Tu Premio</CardTitle>
             <CardDescription>
-              Tell our AI what you're raffling off, and it will generate a
-              name, description, and terms for you.
+              Dile a nuestra IA qué estás rifando y generará un nombre, descripción y términos para ti.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid w-full gap-2">
-              <Label htmlFor="prompt">Prize Prompt</Label>
+              <Label htmlFor="prompt">Prompt del Premio</Label>
               <Textarea
                 id="prompt"
                 name="prompt"
-                placeholder="e.g., A brand new PS5 console with an extra controller and three games."
+                placeholder="Ej: Una consola PS5 nueva con un control extra y tres juegos."
                 rows={4}
                 required
               />
@@ -92,39 +91,39 @@ export default function CreateRaffleForm() {
       <Card>
         <form action={createRaffleAction}>
           <CardHeader>
-            <CardTitle className="font-headline">2. Review and Create</CardTitle>
+            <CardTitle className="font-headline">2. Revisa y Crea</CardTitle>
             <CardDescription>
-              Review the AI-generated details below or fill them in manually.
+              Revisa los detalles generados por la IA a continuación o llénalos manually.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Raffle Name</Label>
+              <Label htmlFor="name">Nombre de la Rifa</Label>
               <Input
                 id="name"
                 name="name"
-                placeholder="e.g., Ultimate Gamer's PS5 Bundle"
+                placeholder="Ej: Paquete PS5 para Gamers"
                 defaultValue={state.name}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Descripción</Label>
               <Textarea
                 id="description"
                 name="description"
-                placeholder="A short, catchy description of your prize."
+                placeholder="Una descripción corta y atractiva de tu premio."
                 defaultValue={state.description}
                 rows={4}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="terms">Terms & Conditions</Label>
+              <Label htmlFor="terms">Términos y Condiciones</Label>
               <Textarea
                 id="terms"
                 name="terms"
-                placeholder="e.g., Winner must claim within 7 days. UK only."
+                placeholder="Ej: El ganador debe reclamar en 7 días. Solo para México."
                 defaultValue={state.terms}
                 rows={3}
                 required
@@ -132,7 +131,7 @@ export default function CreateRaffleForm() {
             </div>
           </CardContent>
           <CardFooter>
-             <Submit text="Create Raffle" loadingText="Creating..." />
+             <Submit text="Crear Rifa" loadingText="Creando..." />
           </CardFooter>
         </form>
       </Card>

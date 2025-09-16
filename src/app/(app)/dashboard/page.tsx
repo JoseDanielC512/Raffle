@@ -12,10 +12,10 @@ export default async function Dashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold font-headline">Your Raffles</h1>
+        <h1 className="text-3xl font-bold font-headline">Tus Rifas</h1>
         <Button asChild>
           <Link href="/raffle/create">
-            <PlusCircle className="mr-2 h-4 w-4" /> Create New Raffle
+            <PlusCircle className="mr-2 h-4 w-4" /> Crear Nueva Rifa
           </Link>
         </Button>
       </div>
@@ -28,12 +28,12 @@ export default async function Dashboard() {
         </div>
       ) : (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <h2 className="text-2xl font-semibold mb-2">No raffles yet!</h2>
+          <h2 className="text-2xl font-semibold mb-2">¡Aún no hay rifas!</h2>
           <p className="text-muted-foreground mb-4">
-            Get started by creating your first raffle.
+            Comienza creando tu primera rifa.
           </p>
           <Button asChild>
-            <Link href="/raffle/create">Create a Raffle</Link>
+            <Link href="/raffle/create">Crear una Rifa</Link>
           </Button>
         </div>
       )}

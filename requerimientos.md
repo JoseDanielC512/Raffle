@@ -1,33 +1,59 @@
-# Requerimientos y Actualizaciones para el MVP de "Lucky 100 Raffle"
+# Requerimientos y Actualizaciones del MVP de "Lucky 100 Raffle" (Versión Aterrizada)
 
-Este documento describe las características y actualizaciones pendientes para desarrollar la versión Mínima Viable (MVP) completa de la aplicación de rifas.
+Este documento describe las características y actualizaciones esenciales para construir la versión Mínima Viable (MVP) completa, segura y funcional de la aplicación de rifas, tal como lo hemos definido.
 
-## 1. Autenticación y Gestión de Usuarios
+## 1. Autenticación y Perfiles de Usuario
 
-- **Implementación de Lógica de Autenticación:** Conectar los formularios de inicio de sesión (`login`) y registro (`signup`) a un proveedor de autenticación (ej. Firebase Authentication).
-- **Gestión de Sesiones:** Implementar la creación, mantenimiento y cierre de sesiones de usuario.
-- **Rutas Protegidas:** Asegurar que solo los usuarios autenticados puedan acceder a las rutas de la aplicación como `/dashboard` y `/raffle/create`.
-- **Asociación de Datos al Usuario:** Reemplazar los IDs de usuario hardcodeados (ej. `ownerId = '1'`) con el ID del usuario autenticado en sesión.
+### Autenticación sin Backend Tradicional
+Conectar los formularios de Inicio de Sesión y Registro directamente a Firebase Authentication. Esto nos permite prescindir de un backend con Python, delegando a Firebase toda la gestión de credenciales, hashing de contraseñas y creación de tokens de sesión.
 
-## 2. Persistencia de Datos (Base de Datos Real)
+### Gestión de Sesiones en el Frontend
+Utilizar el SDK de Firebase para gestionar el estado de autenticación del usuario. Si un usuario está autenticado, se le debe permitir el acceso a las rutas protegidas como `/dashboard` y a las funciones de creación de rifas.
 
-- **Sustitución del Almacén en Memoria:** Reemplazar el backend simulado en `src/lib/data.ts` por una base de datos real (ej. Firebase Firestore).
-- **CRUD de Rifas:** Reescribir las funciones (`getRafflesForUser`, `getRaffleById`, `createRaffle`, `updateSlot`, `finalizeRaffle`) para que interactúen con la base de datos.
-- **Persistencia de Usuarios:** Crear y gestionar una colección de usuarios en la base de datos.
+### Asociación de Datos (UID Único)
+Al registrar un nuevo usuario, crear un documento en la colección `users` de Firestore. El ID del documento debe ser el UID único de Firebase Authentication para garantizar la coherencia y una seguridad robusta. Este UID será la clave para asociar todas las rifas creadas por el usuario.
+
+## 2. Persistencia de Datos y Lógica de Negocio
+
+### Migración a Base de Datos NoSQL (Firestore)
+Remplazar cualquier backend simulado o persistencia en memoria por Firebase Firestore. Todas las funciones de creación, lectura, actualización y eliminación de datos (CRUD) deben interactuar directamente con esta base de datos.
+
+### Modelo de Datos Definido
+- **Colección `raffles`**: Para cada rifa. Contendrá campos como `ownerUid`, `name`, `status`, `totalSlots` y la `raffleUrl`.
+- **Subcolección `slots`**: Dentro de cada documento de rifa, existirá una subcolección `slots` con 100 documentos (IDs del 0 al 99). Cada documento de `slot` tendrá campos como `name`, `slotStatus` y `paymentStatus`.
+
+### Validación de Límite de Rifas (Core Business Logic)
+Antes de permitir que un organizador cree una nueva rifa, la aplicación debe consultar en Firestore el número de rifas activas que posee. Si ya tiene dos, la creación debe ser rechazada.
+
+### Lógica de Finalización de Rifas
+Implementar la función de finalizar una rifa utilizando una transacción de Firestore. Esta transacción asegurará que la actualización de la rifa y de los 100 documentos de `slots` ocurra de forma atómica, previniendo inconsistencias en la base de datos y garantizando la integridad de los resultados.
 
 ## 3. Pagos y Actualización de Slots
 
-- **Integración con Pasarela de Pagos:** Implementar la integración con una pasarela de pagos (ej. Stripe, Mercado Pago) para que los participantes puedan pagar por sus slots.
-- **Automatización del Estado "Pagado":** Actualizar automáticamente el estado de un slot a "pagado" después de una transacción exitosa.
+### Flujo de Pagos Externo
+Eliminar el requisito de integrar una pasarela de pagos. La lógica se centrará en la gestión manual del estado por parte del organizador. El proyecto no procesará ni almacenará información de tarjetas o pagos.
 
-## 4. Mejoras de Experiencia de Usuario (UX)
+### Actualización del Estado de Casillas
+La única forma de cambiar el estado de una casilla (`slotStatus`) de `reserved` a `paid` será a través de la acción manual del organizador, quien deberá confirmarlo después de recibir el pago externo (por ejemplo, por transferencia o WhatsApp).
 
-- **Actualizaciones en Tiempo Real:** Implementar actualizaciones en tiempo real en el tablero de la rifa (`RaffleBoard`) para que los cambios (ej. un nuevo slot reservado) se reflejen instantáneamente para todos los espectadores. Se puede usar Firebase Realtime Database o Firestore listeners.
-- **Notificaciones:** Añadir un sistema de notificaciones para informar a los usuarios sobre acciones importantes (ej. "Tu slot ha sido pagado con éxito", "El ganador de la rifa ha sido seleccionado").
-- **Validación y Manejo de Errores:** Mejorar la validación en los formularios y la gestión de errores del lado del servidor para proporcionar feedback más claro al usuario.
-- **Costo por Slot:** Añadir un campo para definir el precio por cada slot de la rifa al momento de crearla y mostrarlo en la interfaz.
+### Añadido: Historial de Actividad por Rifa
+Para un mejor seguimiento, agregar un registro simple dentro de cada documento de la rifa que guarde las acciones importantes, como la actualización de los estados de las casillas o la finalización de la rifa.
 
-## 5. Funcionalidad Adicional del MVP
+## 4. Experiencia de Usuario (UX) y Características Adicionales
 
-- **Compartir Rifas:** Añadir un botón para que los creadores de las rifas puedan compartir un enlace público de la misma.
-- **Página de Perfil de Usuario:** Crear una vista donde los usuarios puedan ver su historial de rifas creadas y en las que participan.
+### Actualizaciones en Tiempo Real (Realtime Listeners)
+Implementar listeners de Firestore en la vista pública del tablero de rifa. Esto permitirá que, cuando el organizador actualice una casilla, los cambios se reflejen de forma instantánea y en tiempo real para todos los espectadores, sin necesidad de recargar la página.
+
+### Sistema de Notificaciones
+Añadir un sistema de notificaciones visuales (por ejemplo, usando una librería como `Vue Toastification` o similar) para dar feedback claro al usuario en acciones clave como "Rifa creada con éxito", "Casilla actualizada" o "Error al iniciar sesión".
+
+### Optimización del Tablero
+Asegurar que el tablero sea responsivo y se adapte bien a dispositivos móviles. Además, el renderer debe ser eficiente para evitar problemas de rendimiento al mostrar y actualizar las 100 casillas.
+
+### Añadido: Dashboard con Métricas Clave
+Mejorar el dashboard del organizador para que muestre métricas en tiempo real, como el número total de casillas vendidas, el porcentaje de ocupación del tablero y el estado de sus rifas.
+
+## 5. Internacionalización
+
+### Traducción al Español
+La aplicación debe estar completamente en Español. Actualmente, el prototipo está en inglés, por lo que se precisa una traducción cuidadosa y precisa de todos los textos de la interfaz de usuario.

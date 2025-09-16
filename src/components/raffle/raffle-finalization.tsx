@@ -36,10 +36,10 @@ function FinalizeButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Drawing Winner...
+          Sorteando Ganador...
         </>
       ) : (
-        "Yes, Draw the Winner"
+        "Sí, Sortear el Ganador"
       )}
     </AlertDialogAction>
   );
@@ -64,22 +64,22 @@ export default function RaffleFinalization({ raffle }: { raffle: Raffle }) {
     <Card>
       <CardHeader>
         <CardTitle className="font-headline">
-          {raffle.finalizedAt ? 'Raffle Complete!' : 'Finalize Raffle'}
+          {raffle.finalizedAt ? '¡Rifa Completada!' : 'Finalizar Rifa'}
         </CardTitle>
         <CardDescription>
           {raffle.finalizedAt
-            ? 'A winner has been selected.'
-            : 'Draw a random winner to finalize the raffle.'}
+            ? 'Se ha seleccionado un ganador.'
+            : 'Sortea un ganador al azar para finalizar la rifa.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {raffle.winnerSlotNumber ? (
           <div className="flex flex-col items-center justify-center p-6 bg-accent/10 rounded-lg">
             <PartyPopper className="h-12 w-12 text-accent" />
-            <p className="text-sm text-muted-foreground mt-4">The winning number is</p>
+            <p className="text-sm text-muted-foreground mt-4">El número ganador es</p>
             <p className="text-6xl font-bold font-mono text-accent">{raffle.winnerSlotNumber}</p>
             <p className="mt-2 font-semibold">
-                Congratulations, {raffle.slots.find(s => s.slotNumber === raffle.winnerSlotNumber)?.participantName || 'Winner'}!
+                ¡Felicidades, {raffle.slots.find(s => s.slotNumber === raffle.winnerSlotNumber)?.participantName || 'Ganador'}!
             </p>
           </div>
         ) : (
@@ -92,20 +92,20 @@ export default function RaffleFinalization({ raffle }: { raffle: Raffle }) {
                   ) : (
                       <Crown className="mr-2 h-4 w-4" />
                   )}
-                  Draw a Winner
+                  Sortear un Ganador
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action is irreversible. It will randomly select a
-                    winner from all 100 slots and finalize the raffle. You will
-                    not be able to make any more changes.
+                    Esta acción es irreversible. Seleccionará al azar un
+                    ganador de entre las 100 casillas y finalizará la rifa. No podrás
+                    realizar más cambios.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
                   <FinalizeButton />
                 </AlertDialogFooter>
               </AlertDialogContent>

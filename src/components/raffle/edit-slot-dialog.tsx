@@ -26,7 +26,7 @@ function SubmitButton() {
   return (
     <Button type="submit" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Save Changes
+      Guardar Cambios
     </Button>
   );
 }
@@ -46,13 +46,13 @@ export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDia
         await updateSlotAction(formData);
         setOpen(false);
         toast({
-            title: "Slot Updated",
-            description: `Slot #${slot.slotNumber} has been successfully updated.`,
+            title: "Casilla Actualizada",
+            description: `La casilla #${slot.slotNumber} ha sido actualizada exitosamente.`,
         });
     } catch(error) {
         toast({
             title: "Error",
-            description: "Failed to update the slot. Please try again.",
+            description: "Error al actualizar la casilla. Por favor, inténtalo de nuevo.",
             variant: "destructive"
         })
     }
@@ -63,9 +63,9 @@ export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDia
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Edit Slot #{slot.slotNumber}</DialogTitle>
+          <DialogTitle className="font-headline">Editar Casilla #{slot.slotNumber}</DialogTitle>
           <DialogDescription>
-            Update the participant's name and payment status for this slot.
+            Actualiza el nombre del participante y el estado de pago de esta casilla.
           </DialogDescription>
         </DialogHeader>
         <form action={handleFormAction}>
@@ -74,7 +74,7 @@ export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDia
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="participantName" className="text-right">
-                    Name
+                    Nombre
                     </Label>
                     <Input
                     id="participantName"
@@ -84,26 +84,26 @@ export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDia
                     />
                 </div>
                 <div className="grid grid-cols-4 items-start gap-4">
-                    <Label className="text-right pt-2">Status</Label>
+                    <Label className="text-right pt-2">Estado</Label>
                     <RadioGroup name="status" defaultValue={slot.status} className="col-span-3 pt-2">
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="available" id="s-available" />
-                            <Label htmlFor="s-available">Available</Label>
+                            <Label htmlFor="s-available">Disponible</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="reserved" id="s-reserved" />
-                            <Label htmlFor="s-reserved">Reserved</Label>
+                            <Label htmlFor="s-reserved">Reservado</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="paid" id="s-paid" />
-                            <Label htmlFor="s-paid">Paid</Label>
+                            <Label htmlFor="s-paid">Pagado</Label>
                         </div>
                     </RadioGroup>
                 </div>
             </div>
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline">Cancelar</Button>
                 </DialogClose>
                 <SubmitButton />
             </DialogFooter>

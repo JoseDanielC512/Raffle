@@ -9,7 +9,7 @@ import type { SlotStatus } from '@/lib/definitions';
 
 // AI Generation Action
 const GenerateDetailsSchema = z.object({
-  prompt: z.string().min(10, { message: 'Please provide a more detailed prompt.' }),
+  prompt: z.string().min(10, { message: 'Por favor, proporciona un prompt más detallado.' }),
 });
 
 export type GenerateState = {
@@ -29,25 +29,25 @@ export async function generateDetailsAction(prevState: GenerateState, formData: 
 
   if (!validatedFields.success) {
     return {
-      message: 'Validation failed. Please check your input.',
+      message: 'La validación falló. Por favor, revisa tus entradas.',
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
   try {
     const result = await generateRaffleDetails({ prompt: validatedFields.data.prompt });
-    return { message: 'Details generated successfully.', ...result };
+    return { message: 'Detalles generados con éxito.', ...result };
   } catch (error) {
-    return { message: 'An error occurred during AI generation. Please try again.' };
+    return { message: 'Ocurrió un error durante la generación de la IA. Por favor, inténtalo de nuevo.' };
   }
 }
 
 
 // Raffle Creation Action
 const CreateRaffleSchema = z.object({
-  name: z.string().min(1, 'Name is required.'),
-  description: z.string().min(1, 'Description is required.'),
-  terms: z.string().min(1, 'Terms are required.'),
+  name: z.string().min(1, 'El nombre es obligatorio.'),
+  description: z.string().min(1, 'La descripción es obligatoria.'),
+  terms: z.string().min(1, 'Los términos son obligatorios.'),
 });
 
 export async function createRaffleAction(formData: FormData) {
@@ -58,7 +58,7 @@ export async function createRaffleAction(formData: FormData) {
   });
 
   if (!validatedFields.success) {
-    throw new Error('Validation failed');
+    throw new Error('La validación falló');
   }
 
   // In a real app, ownerId would come from the authenticated user session.
@@ -69,7 +69,7 @@ export async function createRaffleAction(formData: FormData) {
     revalidatePath('/dashboard');
     redirect(`/raffle/${newRaffle.id}`);
   } catch (error) {
-    throw new Error('Failed to create raffle');
+    throw new Error('Error al crear la rifa');
   }
 }
 
@@ -92,7 +92,7 @@ export async function updateSlotAction(formData: FormData) {
 
   if (!validatedFields.success) {
     console.error(validatedFields.error);
-    throw new Error('Invalid slot data');
+    throw new Error('Datos de la casilla no válidos');
   }
 
   const { raffleId, slotNumber, ...data } = validatedFields.data;
@@ -101,21 +101,21 @@ export async function updateSlotAction(formData: FormData) {
     await updateSlot(raffleId, slotNumber, { participantName: data.participantName, status: data.status as SlotStatus });
     revalidatePath(`/raffle/${raffleId}`);
   } catch (error) {
-    throw new Error('Failed to update slot');
+    throw new Error('Error al actualizar la casilla');
   }
 }
 
 // Finalize Raffle Action
 export async function finalizeRaffleAction(raffleId: string) {
     if (!raffleId) {
-        throw new Error('Raffle ID is required.');
+        throw new Error('Se requiere el ID de la rifa.');
     }
 
     try {
         await finalizeRaffle(raffleId);
         revalidatePath(`/raffle/${raffleId}`);
     } catch (error) {
-        console.error('Finalization Error:', error);
-        throw new Error('Failed to finalize the raffle.');
+        console.error('Error de finalización:', error);
+        throw new Error('Error al finalizar la rifa.');
     }
 }
