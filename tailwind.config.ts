@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['PT Sans', 'sans-serif'],
+        headline: ['PT Sans', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -65,6 +65,7 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        tertiary: '#64908a',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -88,10 +89,15 @@ export default {
             height: '0',
           },
         },
+        'winner-pulse': {
+          '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0px hsl(var(--accent) / 0.7)' },
+          '50%': { transform: 'scale(1.05)', boxShadow: '0 0 0 10px hsl(var(--accent) / 0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'winner-pulse': 'winner-pulse 2s infinite',
       },
     },
   },
