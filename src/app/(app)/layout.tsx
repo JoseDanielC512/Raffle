@@ -1,8 +1,35 @@
-import Header from "@/components/layout/header";
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Header } from "@/components/layout/header";
+import { useAuth } from "@/context/auth-context";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  // In a real app, this layout would be protected, redirecting
-  // unauthenticated users to the login page.
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header />

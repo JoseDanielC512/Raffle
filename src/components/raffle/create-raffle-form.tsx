@@ -1,140 +1,133 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { Bot, Loader2, Wand2 } from 'lucide-react';
-
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { generateDetailsAction, createRaffleAction } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/auth-context';
+import { useEffect, useState } from 'react';
 
-function Submit({ text, loadingText, variant = "default" }: { text: string; loadingText: string, variant?: "default" | "secondary" }) {
+function GenerationSubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} variant={variant}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {loadingText}
-        </>
-      ) : (
-        text
-      )}
+    <Button type="submit" disabled={pending} className="w-full md:w-auto">
+      {pending ? 'Generando...' : 'Generar con IA'}
     </Button>
   );
 }
 
-function GenerateButton() {
-    const { pending } = useFormStatus();
-    return (
-      <Button type="submit" disabled={pending}>
-        {pending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generando...
-          </>
-        ) : (
-          <>
-            <Bot className="mr-2 h-4 w-4" />
-            Generar Detalles con IA
-          </>
-        )}
-      </Button>
-    );
-  }
+function RaffleSubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? 'Creando Rifa...' : 'Crear Rifa'}
+    </Button>
+  );
+}
 
-export default function CreateRaffleForm() {
-  const initialState = { message: null, errors: {} };
-  const [state, dispatch] = useFormState(generateDetailsAction, initialState);
+export function CreateRaffleForm() {
+  const { user, loading: authLoading } = useAuth();
+  const [generateState, generateDispatch] = useActionState(generateDetailsAction, { message: null });
+  
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [terms, setTerms] = useState('');
+
+  useEffect(() => {
+    if (generateState.name) setName(generateState.name);
+    if (generateState.description) setDescription(generateState.description);
+    if (generateState.terms) setTerms(generateState.terms);
+  }, [generateState]);
+
+  const isFormDisabled = authLoading || !user;
 
   return (
-    <div className="grid md:grid-cols-2 gap-8">
-      <Card>
-        <form action={dispatch}>
+    <div className="grid gap-8 md:grid-cols-3">
+      <div className="md:col-span-1">
+        <Card>
           <CardHeader>
-            <CardTitle className="font-headline">1. Describe Tu Premio</CardTitle>
-            <CardDescription>
-              Dile a nuestra IA qué estás rifando y generará un nombre, descripción y términos para ti.
-            </CardDescription>
+            <CardTitle>Generador de Contenido con IA</CardTitle>
+            <CardDescription>Describe el premio y la IA creará los textos por ti.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid w-full gap-2">
-              <Label htmlFor="prompt">Prompt del Premio</Label>
-              <Textarea
-                id="prompt"
-                name="prompt"
-                placeholder="Ej: Una consola PS5 nueva con un control extra y tres juegos."
-                rows={4}
-                required
-              />
-              {state.errors?.prompt && (
-                <p className="text-sm text-destructive">{state.errors.prompt}</p>
-              )}
-            </div>
+            <form action={generateDispatch} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="prompt">¿Qué vas a rifar?</Label>
+                <Textarea
+                  id="prompt"
+                  name="prompt"
+                  placeholder="Ej: Una consola PS5 nueva con dos controles y el juego Spider-Man 2."
+                  className="min-h-[100px]"
+                  disabled={isFormDisabled}
+                />
+                {generateState.errors?.prompt && (
+                  <p className="text-sm text-red-500">{generateState.errors.prompt.join(', ')}</p>
+                )}
+              </div>
+              <GenerationSubmitButton />
+            </form>
           </CardContent>
-          <CardFooter>
-            <GenerateButton />
-          </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </div>
 
-      <Card>
-        <form action={createRaffleAction}>
-          <CardHeader>
-            <CardTitle className="font-headline">2. Revisa y Crea</CardTitle>
-            <CardDescription>
-              Revisa los detalles generados por la IA a continuación o llénalos manually.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la Rifa</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Ej: Paquete PS5 para Gamers"
-                defaultValue={state.name}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Una descripción corta y atractiva de tu premio."
-                defaultValue={state.description}
-                rows={4}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="terms">Términos y Condiciones</Label>
-              <Textarea
-                id="terms"
-                name="terms"
-                placeholder="Ej: El ganador debe reclamar en 7 días. Solo para México."
-                defaultValue={state.terms}
-                rows={3}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-             <Submit text="Crear Rifa" loadingText="Creando..." />
-          </CardFooter>
+      <div className="md:col-span-2">
+        <form action={createRaffleAction} className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalles de la Rifa</CardTitle>
+              <CardDescription>Completa la información para tu nueva rifa.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isFormDisabled && (
+                <p className="text-sm text-center text-yellow-600 bg-yellow-50 p-3 rounded-md">
+                  Debes iniciar sesión para poder crear una rifa.
+                </p>
+              )}
+              <input type="hidden" name="ownerId" value={user?.uid || ''} />
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre de la Rifa</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  placeholder="Rifa Increíble de PS5"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isFormDisabled}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Describe los detalles emocionantes de tu rifa aquí."
+                  className="min-h-[120px]"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={isFormDisabled}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="terms">Términos y Condiciones</Label>
+                <Textarea
+                  id="terms"
+                  name="terms"
+                  placeholder="Define las reglas: fecha del sorteo, cómo se elegirá al ganador, etc."
+                  className="min-h-[100px]"
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value)}
+                  disabled={isFormDisabled}
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <RaffleSubmitButton />
         </form>
-      </Card>
+      </div>
     </div>
   );
 }

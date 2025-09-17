@@ -1,13 +1,47 @@
+'use client';
+
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { getRafflesForUser } from "@/lib/data";
+import { getRafflesForUser } from "@/lib/firestore"; // Updated import
 import RaffleCard from "@/components/raffle/raffle-card";
+import { useAuth } from "@/context/auth-context";
+import type { Raffle } from "@/lib/definitions";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function Dashboard() {
-  // In a real app, userId would come from the session.
-  const raffles = await getRafflesForUser("1");
+function DashboardSkeleton() {
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <Skeleton className="h-[250px] w-full rounded-lg" />
+      <Skeleton className="h-[250px] w-full rounded-lg" />
+      <Skeleton className="h-[250px] w-full rounded-lg" />
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { user, loading: authLoading } = useAuth();
+  const [raffles, setRaffles] = useState<(Raffle & { filledSlots: number })[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRaffles() {
+      if (user) {
+        setDataLoading(true);
+        const userRaffles = await getRafflesForUser(user.uid);
+        setRaffles(userRaffles);
+        setDataLoading(false);
+      }
+    }
+
+    if (!authLoading) {
+      fetchRaffles();
+    }
+  }, [user, authLoading]);
+
+  const isLoading = authLoading || dataLoading;
 
   return (
     <div>
@@ -19,8 +53,10 @@ export default async function Dashboard() {
           </Link>
         </Button>
       </div>
-      
-      {raffles.length > 0 ? (
+
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : raffles.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {raffles.map((raffle) => (
             <RaffleCard key={raffle.id} raffle={raffle} />

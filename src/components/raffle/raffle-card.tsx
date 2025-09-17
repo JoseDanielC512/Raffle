@@ -14,18 +14,15 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
 
 type RaffleCardProps = {
-  raffle: Raffle;
+  raffle: Raffle & { filledSlots?: number };
 };
 
 export default function RaffleCard({ raffle }: RaffleCardProps) {
-  const filledSlots = raffle.slots.filter(
-    (slot) => slot.status === "paid" || slot.status === "reserved"
-  ).length;
-
+  const filledSlots = raffle.filledSlots || 0;
   const progress = (filledSlots / 100) * 100;
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
         <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-xl">{raffle.name}</CardTitle>
@@ -40,7 +37,7 @@ export default function RaffleCard({ raffle }: RaffleCardProps) {
             <span>Progreso</span>
             <span>{filledSlots} / 100</span>
         </div>
-        <Progress value={progress} aria-label={`${progress}% of slots filled`} />
+        <Progress value={progress} aria-label={`${progress}% of slots filled`} className="h-2" />
       </CardContent>
       <CardFooter>
         <Button asChild className="w-full">

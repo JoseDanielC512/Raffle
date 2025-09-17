@@ -1,25 +1,175 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Ticket } from "lucide-react";
+'use client';
 
-export default function Header() {
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { CircleUser, Menu, Package2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/auth-context';
+import { logoutAction } from '@/app/actions';
+import { cn } from '@/lib/utils';
+
+export function Header() {
+  const { user, loading } = useAuth();
+  const pathname = usePathname();
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logoutAction();
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const isActiveLink = (path: string) => {
+    return pathname === path;
+  };
+
+  const navLinks = [
+    { href: '/', label: 'Inicio', icon: Package2 },
+    { href: '/dashboard', label: 'Dashboard', icon: undefined },
+  ];
+
   return (
-    <header className="px-4 lg:px-6 h-16 flex items-center bg-card border-b">
-      <Link href="/" className="flex items-center justify-center">
-        <Ticket className="h-6 w-6 text-primary" />
-        <span className="ml-2 text-lg font-semibold font-headline">
-          Rifa de la Suerte 100
-        </span>
-      </Link>
-      <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-        {/* This would be conditional based on auth state in a real app */}
-        <Button variant="ghost" asChild>
-          <Link href="/login">Iniciar Sesión</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/signup">Regístrate</Link>
-        </Button>
-      </nav>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Logo y navegación desktop */}
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Package2 className="h-5 w-5" />
+            </div>
+            <span className="hidden font-bold sm:inline-block lg:text-xl">Lucky 100 Raffle</span>
+          </Link>
+          
+          {/* Navegación desktop */}
+          <nav className="hidden md:flex md:items-center md:gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                  isActiveLink(link.href) 
+                    ? "bg-accent text-accent-foreground shadow-sm" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {/* Menú móvil */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+            <SheetHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Package2 className="h-5 w-5" />
+                </div>
+                <span className="font-bold text-lg">Lucky 100 Raffle</span>
+              </div>
+            </SheetHeader>
+            <nav className="grid gap-4 py-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
+                    isActiveLink(link.href) 
+                      ? "bg-accent text-accent-foreground shadow-sm" 
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {link.icon && <link.icon className="h-4 w-4" />}
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
+
+        {/* Usuario/autenticación */}
+        <div className="flex items-center gap-2">
+          {loading ? (
+            <div className="h-9 w-9 flex items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <CircleUser className="h-5 w-5" />
+                  <span className="sr-only">Menú de usuario</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => { /* TODO: Navigate to settings */ }}
+                  className="cursor-pointer"
+                >
+                  Configuración
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  {isLoggingOut ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Cerrando sesión...
+                    </>
+                  ) : (
+                    'Cerrar Sesión'
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/login">Iniciar Sesión</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Regístrate</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </header>
   );
 }

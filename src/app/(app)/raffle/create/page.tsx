@@ -1,4 +1,4 @@
-import CreateRaffleForm from "@/components/raffle/create-raffle-form";
+import { CreateRaffleForm } from "@/components/raffle/create-raffle-form";
 
 export default function CreateRafflePage() {
   return (

@@ -7,12 +7,12 @@ export type RaffleSlot = {
 };
 
 export type Raffle = {
-  id: string;
-  ownerId: string;
+  id: string; // Document ID
+  ownerId: string; // UID from Firebase Auth
   name: string;
   description: string;
   terms: string;
-  slots: RaffleSlot[];
+  status: 'active' | 'finalized';
   winnerSlotNumber: number | null;
   createdAt: string;
   finalizedAt: string | null;
