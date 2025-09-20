@@ -18,6 +18,7 @@ export default function AuthLayout({
     }
   }, [user, loading, router]);
 
+  // Mostrar loading mientras se verifica la autenticación
   if (loading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
@@ -29,15 +30,16 @@ export default function AuthLayout({
     );
   }
 
-  if (!user) {
-    return (
-      <main className="flex items-center justify-center min-h-screen">
-        {children}
-      </main>
-    );
+  // Si el usuario está autenticado, no mostrar las páginas de auth
+  // El useEffect se encargará de redirigir automáticamente
+  if (user) {
+    return null;
   }
 
-  // Si el usuario está autenticado, el useEffect se encargará de redirigir.
-  // Mientras tanto, no renderizamos nada para evitar un parpadeo.
-  return null;
+  // Solo mostrar las páginas de autenticación si el usuario NO está autenticado
+  return (
+    <main className="flex items-center justify-center min-h-screen">
+      {children}
+    </main>
+  );
 }

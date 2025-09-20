@@ -27,6 +27,7 @@ export type AuthState = {
   errors?: any; 
   success?: boolean;
   redirect?: string;
+  data?: { email: string; password: string }; // Añadir datos validados
 };
 
 export async function signupAction(prevState: AuthState, formData: FormData): Promise<AuthState> {
@@ -44,13 +45,9 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
       createdAt: new Date().toISOString()
     });
     
-    // Esperar un momento para que el contexto de autenticación se actualice
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
     return { 
       message: 'Registro exitoso', 
-      success: true,
-      redirect: '/dashboard'
+      success: true
     };
   } catch (error: any) {
     console.error("Signup Error:", error);
@@ -67,26 +64,10 @@ export async function loginAction(prevState: AuthState, formData: FormData): Pro
     return { message: 'La validación falló.', errors: validatedFields.error.flatten().fieldErrors };
   }
   const { email, password } = validatedFields.data;
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    
-    // Esperar un momento para que el contexto de autenticación se actualice
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return { 
-      message: 'Login exitoso', 
-      success: true,
-      redirect: '/dashboard'
-    };
-  } catch (error: any) {
-    console.error("Login Error:", error);
-    if (error.code === 'auth/invalid-credential') return { message: 'Credenciales incorrectas.' };
-    if (error.code === 'auth/user-not-found') return { message: 'Usuario no encontrado.' };
-    if (error.code === 'auth/wrong-password') return { message: 'Contraseña incorrecta.' };
-    if (error.code === 'auth/invalid-email') return { message: 'El correo electrónico no es válido.' };
-    if (error.code === 'auth/user-disabled') return { message: 'La cuenta ha sido deshabilitada.' };
-    return { message: 'Ocurrió un error durante el inicio de sesión.' };
-  }
+  
+  // La acción ahora solo valida. La autenticación real la hará el cliente.
+  // Devolvemos los datos validados para que el cliente los use.
+  return { message: 'Validación exitosa', success: true, data: { email, password } };
 }
 
 export async function logoutAction() {

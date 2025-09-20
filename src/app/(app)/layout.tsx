@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from "@/components/layout/header";
 import { useAuth } from "@/context/auth-context";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router]);
 
+  // Mostrar loading mientras se verifica la autenticación
   if (loading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
@@ -26,16 +26,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Si no hay usuario autenticado, no mostrar el contenido de la aplicación
+  // El useEffect se encargará de redirigir automáticamente
   if (!user) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
-  return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        {children}
-      </main>
-    </div>
-  );
+  // Solo mostrar el contenido de la aplicación si el usuario está autenticado
+  return <div className="p-4 md:gap-8 md:p-8">{children}</div>;
 }

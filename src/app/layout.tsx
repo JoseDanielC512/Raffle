@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/auth-context";
+import ClientWrapper from "@/components/layout/client-wrapper";
+import { Header } from "@/components/layout/header";
 
 const ptSans = PT_Sans({ 
   subsets: ["latin"],
@@ -22,9 +23,14 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={ptSans.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ClientWrapper>
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
+        </ClientWrapper>
       </body>
     </html>
   );

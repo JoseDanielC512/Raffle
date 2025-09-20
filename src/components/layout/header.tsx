@@ -4,8 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CircleUser, Menu, Package2, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
 import { useAuth } from '@/context/auth-context';
 import { logoutAction } from '@/app/actions';
 import { cn } from '@/lib/utils';
@@ -40,8 +39,12 @@ export function Header() {
 
   const navLinks = [
     { href: '/', label: 'Inicio', icon: Package2 },
-    { href: '/dashboard', label: 'Dashboard', icon: undefined },
+    ...(user ? [{ href: '/dashboard', label: 'Dashboard', icon: undefined }] : []),
   ];
+
+  // Si el usuario está autenticado, no mostrar enlaces de login/signup en el header
+  // ya que serán redirigidos automáticamente por los layouts
+  const showAuthLinks = !user && !loading;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -67,6 +70,7 @@ export function Header() {
                     ? "bg-accent text-accent-foreground shadow-sm" 
                     : "text-muted-foreground hover:text-foreground"
                 )}
+                aria-label={`Navegar a ${link.label}`}
               >
                 {link.label}
               </Link>
@@ -77,10 +81,10 @@ export function Header() {
         {/* Menú móvil */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <button className="h-9 w-9 p-0 md:flex md:items-center md:justify-center">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle navigation menu</span>
-            </Button>
+            </button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[300px] sm:w-[400px]">
             <SheetHeader>
@@ -102,6 +106,7 @@ export function Header() {
                       ? "bg-accent text-accent-foreground shadow-sm" 
                       : "text-muted-foreground"
                   )}
+                  aria-label={`Navegar a ${link.label}`}
                 >
                   {link.icon && <link.icon className="h-4 w-4" />}
                   {link.label}
@@ -113,17 +118,18 @@ export function Header() {
 
         {/* Usuario/autenticación */}
         <div className="flex items-center gap-2">
-          {loading ? (
+          {loading && (
             <div className="h-9 w-9 flex items-center justify-center">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
-          ) : user ? (
+          )}
+          {!loading && user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <button className="relative h-9 w-9 rounded-full flex items-center justify-center">
                   <CircleUser className="h-5 w-5" />
                   <span className="sr-only">Menú de usuario</span>
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
@@ -158,14 +164,11 @@ export function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
+          )}
+          {showAuthLinks && (
             <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Iniciar Sesión</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Regístrate</Link>
-              </Button>
+              <a href="/login" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Iniciar Sesión</a>
+              <a href="/signup" className="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">Regístrate</a>
             </div>
           )}
         </div>

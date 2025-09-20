@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     setLoading(true);
@@ -32,13 +34,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, (error) => {
       console.error('Auth state change error:', error);
       setError(error.message);
+      toast({
+        title: "Error de Autenticación",
+        description: error.message,
+        variant: "destructive",
+      });
       setLoading(false);
       setUser(null);
     });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   const value = { user, loading, error };
 

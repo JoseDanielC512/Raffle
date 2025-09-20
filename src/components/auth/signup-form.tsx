@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { signupAction, type AuthState } from '@/app/actions';
+import { useAuth } from '@/context/auth-context';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,18 +21,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function SignupForm() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const initialState: AuthState = { message: null, errors: {} };
   const [state, dispatch] = useActionState(signupAction, initialState);
 
   useEffect(() => {
-    if (state.success && state.redirect) {
-      // Esperar un momento para que el contexto de autenticación se actualice
-      const timer = setTimeout(() => {
-        router.push(state.redirect!);
-      }, 500);
-      return () => clearTimeout(timer);
+    if (state.success && user && !authLoading) {
+      router.push('/dashboard');
     }
-  }, [state.success, state.redirect, router]);
+  }, [state.success, user, authLoading, router]);
 
   return (
     <Card className="mx-auto max-w-sm">
