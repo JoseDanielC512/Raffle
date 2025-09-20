@@ -21,7 +21,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // CORRECCIÓN: La variante 'loading' ahora incluye explícitamente las clases de tamaño por defecto
         // para asegurar que el botón tenga dimensiones incluso cuando está en estado de carga.
-        loading: "bg-primary text-primary-foreground cursor-not-allowed h-11 px-6 py-2",
+        loading: "bg-primary text-primary-foreground cursor-not-allowed h-11 px-6 py-2 min-w-[120px]",
       },
       size: {
         default: "h-11 px-6 py-2",

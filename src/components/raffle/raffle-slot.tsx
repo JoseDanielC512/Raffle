@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { Crown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RaffleSlot } from "@/lib/definitions";
 import EditSlotDialog from "./edit-slot-dialog";
@@ -19,38 +19,56 @@ type SlotProps = {
 
 export default function Slot({ slot, raffleId, isWinner, isFinalized }: SlotProps) {
   const { user } = useAuth();
+
+  // Colores mejorados con gradientes sutiles
   const statusClasses = {
-    available: "bg-green-500 hover:bg-green-600 text-white", // Verde
-    reserved: "bg-yellow-500 hover:bg-yellow-600 text-white", // Amarillo
-    paid: "bg-blue-500 hover:bg-blue-600 text-white", // Azul
+    available: "bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-sm hover:shadow-md", // Verde
+    reserved: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-sm hover:shadow-md", // Amarillo
+    paid: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-sm hover:shadow-md", // Azul
   };
 
   const isLoser = isFinalized && !isWinner && slot.status === 'paid';
-  const loserClasses = isLoser ? "bg-gray-400 text-white" : "";
-  
+  const loserClasses = isLoser ? "bg-gradient-to-br from-gray-400 to-gray-500 text-white opacity-75" : "";
+
   const content = (
     <div
       className={cn(
-        "relative aspect-square w-full rounded-md flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer p-1 hover:scale-105",
+        "relative aspect-square w-full rounded-lg flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer p-1.5 group",
         statusClasses[slot.status],
         loserClasses,
-        isWinner && "animate-winner-pulse bg-yellow-400 text-yellow-900 ring-2 ring-yellow-500 ring-offset-2 ring-offset-background", // Dorado
-        isFinalized && !isWinner && slot.status !== 'paid' && "opacity-60 cursor-not-allowed hover:scale-100"
+        isWinner && "animate-winner-pulse bg-gradient-to-br from-amber-400 to-yellow-500 text-yellow-900 ring-2 ring-amber-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
+        isFinalized && !isWinner && slot.status !== 'paid' && "opacity-50 cursor-not-allowed hover:scale-100",
+        "hover:scale-110 hover:-translate-y-1"
       )}
     >
-      <span className="font-mono text-xs leading-tight">{slot.slotNumber}</span>
+      {/* Número de casilla */}
+      <span className="font-mono text-xs leading-tight drop-shadow-sm">
+        {slot.slotNumber}
+      </span>
+
+      {/* Nombre del participante */}
       {slot.status === 'paid' && slot.participantName && (
-        <span className="text-[0.6rem] leading-tight text-center break-words w-full">
-          {slot.participantName}
-        </span>
+        <div className="flex items-center gap-1 mt-0.5">
+          <User className="w-2.5 h-2.5 opacity-80" />
+          <span className="text-[0.55rem] leading-tight text-center break-words w-full font-medium">
+            {slot.participantName}
+          </span>
+        </div>
       )}
-      {isWinner && <Crown className="absolute -top-2 -right-2 h-5 w-5 text-yellow-700" />}
+
+      {/* Icono de ganador */}
+      {isWinner && (
+        <Crown className="absolute -top-1.5 -right-1.5 h-4 w-4 text-amber-700 drop-shadow-sm" />
+      )}
+
+      {/* Efecto de brillo para casillas pagadas */}
+      {slot.status === 'paid' && !isWinner && (
+        <div className="absolute inset-0 bg-white/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      )}
     </div>
   );
 
-  // We will move the ownership check to EditSlotDialog for better encapsulation
-  // For now, we always pass the content to EditSlotDialog if not finalized.
-  // The EditSlotDialog itself will check for ownership.
+  // Componente de slot final
   const slotComponent = isFinalized ? (
     content
   ) : (
@@ -69,15 +87,19 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized }: SlotProp
   const status = statusMap[slot.status];
 
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
+          <div className="relative">
             {slotComponent}
+          </div>
         </TooltipTrigger>
-        <TooltipContent>
-          <p className="font-semibold">Casilla #{slot.slotNumber}</p>
-          <p>Participante: {participantName}</p>
-          <p>Estado: {status}</p>
+        <TooltipContent side="top" className="bg-white/95 backdrop-blur-sm border-primary/20 shadow-lg">
+          <div className="space-y-1">
+            <p className="font-semibold text-primary">Casilla #{slot.slotNumber}</p>
+            <p className="text-sm">Participante: <span className="font-medium">{participantName}</span></p>
+            <p className="text-sm">Estado: <span className="font-medium">{status}</span></p>
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -2,31 +2,38 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Ticket, Star, Bot } from "lucide-react";
 
 export default function Home() {
   return (
     <>
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-background to-muted/20">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-gray-900">
-                  Rifas Seguras
-                </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Plataforma simple y segura para organizar y participar en rifas transparentes.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <Link href="/register">Comenzar como Organizador</Link>
-                </Button>
-              </div>
+          <div className="flex flex-col items-center justify-center space-y-8 text-center">
+            {/* Elementos geométricos decorativos */}
+            <div className="relative mb-8">
+              <div className="w-32 h-32 bg-primary rounded-full opacity-10 absolute -top-4 -left-4 animate-pulse"></div>
+              <div className="w-24 h-24 bg-accent rounded-full opacity-20 absolute -top-2 -right-2 animate-pulse delay-300"></div>
+              <div className="w-16 h-16 bg-primary/30 rounded-full opacity-40 relative z-10 animate-pulse delay-700"></div>
             </div>
-            <div className="hidden lg:flex items-center justify-center">
-               <Ticket className="h-48 w-48 text-blue-200" strokeWidth={0.5} />
+
+            <div className="space-y-6 max-w-4xl">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none font-headline text-foreground leading-tight">
+                Tu plataforma de rifas.<br />
+                <span className="text-accent">Simple, Segura y Transparente</span>
+              </h1>
+
+              <p className="mx-auto max-w-[800px] text-lg md:text-xl text-muted-foreground leading-relaxed">
+                La plataforma #1 de rifas donde los usuarios dais su asamblea. Simple. Segura. Totalmente con FireBase.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <Link href="/register">Registrarse</Link>
+              </Button>
+              <Button variant="outline" asChild size="lg" className="border-primary text-primary hover:bg-primary/5 transition-all duration-300">
+                <Link href="/login">Ver Demo</Link>
+              </Button>
             </div>
           </div>
         </div>
