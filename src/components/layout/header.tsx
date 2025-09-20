@@ -15,19 +15,16 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
 import { useAuth } from '@/context/auth-context';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
-  const { user, loading, setIsLoggingOut } = useAuth();
+  const { user, loading, isLoggingOut, setIsLoggingOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const [localLoggingOut, setLocalLoggingOut] = React.useState(false);
 
   const handleLogout = async () => {
-    setLocalLoggingOut(true);
     setIsLoggingOut(true);
     try {
       await auth.signOut();
@@ -44,7 +41,6 @@ export function Header() {
         variant: "destructive"
       });
       setIsLoggingOut(false);
-      setLocalLoggingOut(false);
     }
   };
 
@@ -165,10 +161,10 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleLogout}
-                  disabled={localLoggingOut}
+                  disabled={isLoggingOut}
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
-                  {localLoggingOut ? (
+                  {isLoggingOut ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Cerrando sesión...
