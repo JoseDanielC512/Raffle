@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { RaffleSlot } from "@/lib/definitions";
 import { updateSlotAction } from "@/app/actions";
+import { getRaffleById } from "@/lib/firestore";
+import type { User } from "firebase/auth"; // Import User from firebase/auth
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 function SubmitButton() {
@@ -35,11 +37,41 @@ type EditSlotDialogProps = {
   children: React.ReactNode;
   slot: RaffleSlot;
   raffleId: string;
+  user: User | null; // Added user prop
 };
 
-export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDialogProps) {
+export default function EditSlotDialog({ children, slot, raffleId, user }: EditSlotDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [checkingOwnership, setCheckingOwnership] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    async function checkOwnership() {
+      if (!user) {
+        setIsOwner(false);
+        setCheckingOwnership(false);
+        return;
+      }
+      try {
+        const raffle = await getRaffleById(raffleId);
+        if (raffle && raffle.ownerId === user.uid) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
+        }
+      } catch (error) {
+        console.error("Error checking raffle ownership:", error);
+        setIsOwner(false);
+      } finally {
+        setCheckingOwnership(false);
+      }
+    }
+
+    if (open) {
+      checkOwnership();
+    }
+  }, [open, raffleId, user]);
 
   const handleFormAction = async (formData: FormData) => {
     try {
@@ -56,6 +88,18 @@ export default function EditSlotDialog({ children, slot, raffleId }: EditSlotDia
             variant: "destructive"
         })
     }
+  }
+
+  if (checkingOwnership) {
+    // Render a placeholder or nothing while checking
+    // For simplicity, we'll just render the children (the slot itself) without trigger functionality
+    // This prevents the dialog from opening before we know if the user is the owner.
+    return <>{children}</>;
+  }
+
+  if (!isOwner) {
+    // If not the owner, render the slot without the dialog trigger
+    return <>{children}</>;
   }
 
   return (

@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useAuth } from "@/context/auth-context";
 
 type SlotProps = {
   slot: RaffleSlot;
@@ -17,30 +18,43 @@ type SlotProps = {
 };
 
 export default function Slot({ slot, raffleId, isWinner, isFinalized }: SlotProps) {
+  const { user } = useAuth();
   const statusClasses = {
-    available: "bg-slate-200 hover:bg-slate-300 text-slate-500",
-    reserved: "bg-tertiary hover:bg-tertiary/90 text-white",
-    paid: "bg-secondary hover:bg-secondary/90 text-secondary-foreground",
+    available: "bg-green-500 hover:bg-green-600 text-white", // Verde
+    reserved: "bg-yellow-500 hover:bg-yellow-600 text-white", // Amarillo
+    paid: "bg-blue-500 hover:bg-blue-600 text-white", // Azul
   };
+
+  const isLoser = isFinalized && !isWinner && slot.status === 'paid';
+  const loserClasses = isLoser ? "bg-gray-400 text-white" : "";
   
   const content = (
     <div
       className={cn(
-        "relative aspect-square w-full rounded-md flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer",
+        "relative aspect-square w-full rounded-md flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 cursor-pointer p-1 hover:scale-105",
         statusClasses[slot.status],
-        isWinner && "animate-winner-pulse bg-accent text-accent-foreground ring-2 ring-accent ring-offset-2 ring-offset-background",
-        isFinalized && !isWinner && "opacity-60 cursor-not-allowed"
+        loserClasses,
+        isWinner && "animate-winner-pulse bg-yellow-400 text-yellow-900 ring-2 ring-yellow-500 ring-offset-2 ring-offset-background", // Dorado
+        isFinalized && !isWinner && slot.status !== 'paid' && "opacity-60 cursor-not-allowed hover:scale-100"
       )}
     >
-      <span className="font-mono">{slot.slotNumber}</span>
-      {isWinner && <Crown className="absolute -top-2 -right-2 h-5 w-5 text-amber-400" />}
+      <span className="font-mono text-xs leading-tight">{slot.slotNumber}</span>
+      {slot.status === 'paid' && slot.participantName && (
+        <span className="text-[0.6rem] leading-tight text-center break-words w-full">
+          {slot.participantName}
+        </span>
+      )}
+      {isWinner && <Crown className="absolute -top-2 -right-2 h-5 w-5 text-yellow-700" />}
     </div>
   );
 
+  // We will move the ownership check to EditSlotDialog for better encapsulation
+  // For now, we always pass the content to EditSlotDialog if not finalized.
+  // The EditSlotDialog itself will check for ownership.
   const slotComponent = isFinalized ? (
     content
   ) : (
-    <EditSlotDialog slot={slot} raffleId={raffleId}>
+    <EditSlotDialog slot={slot} raffleId={raffleId} user={user}>
       {content}
     </EditSlotDialog>
   );

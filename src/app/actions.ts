@@ -8,6 +8,7 @@ import type { Raffle, RaffleSlot, SlotStatus } from '@/lib/definitions';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, updateDoc, collection, writeBatch, runTransaction, query, where, getDocs } from 'firebase/firestore';
+import { countActiveRafflesForUser } from '@/lib/firestore';
 
 // --- AUTHENTICATION --- //
 
@@ -99,6 +100,13 @@ export async function createRaffleAction(formData: FormData) {
   if (!validatedFields.success) return { message: 'La validación de los campos falló.' };
 
   const { ownerId, ...raffleData } = validatedFields.data;
+
+  // Check for active raffle limit
+  const activeRaffleCount = await countActiveRafflesForUser(ownerId);
+  if (activeRaffleCount >= 2) {
+    return { message: 'Has alcanzado el límite de 2 rifas activas. No puedes crear más rifas hasta finalizar una existente.' };
+  }
+
   const newRaffleRef = doc(collection(db, 'raffles'));
   const raffleId = newRaffleRef.id;
 

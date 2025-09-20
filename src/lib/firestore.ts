@@ -5,6 +5,26 @@ import { db } from './firebase';
 import type { Raffle, RaffleSlot } from './definitions';
 
 /**
+ * Counts the number of active raffles for a specific user.
+ * @param userId The UID of the user.
+ * @returns A promise that resolves to the count of active raffles.
+ */
+export async function countActiveRafflesForUser(userId: string): Promise<number> {
+  if (!userId) {
+    return 0;
+  }
+  try {
+    const rafflesRef = collection(db, 'raffles');
+    const q = query(rafflesRef, where('ownerId', '==', userId), where('status', '==', 'active'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.size;
+  } catch (error) {
+    console.error("Error counting active raffles for user: ", error);
+    return 0; // In case of error, assume 0 to allow creation or show 0 on UI
+  }
+}
+
+/**
  * Fetches all raffles owned by a specific user.
  * @param userId The UID of the user.
  * @returns A promise that resolves to an array of raffles with filledSlots count.

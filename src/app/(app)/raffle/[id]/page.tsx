@@ -69,29 +69,31 @@ export default function RafflePage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-8 items-start">
-      <div className="md:col-span-2">
-        {/* Pass slots directly to the board */}
-        <RaffleBoard raffle={raffle} slots={slots} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold font-headline">{raffle.name}</h1>
+          <p className="text-muted-foreground mt-2">{raffle.description}</p>
+        </div>
+        <RaffleFinalization raffle={raffle} slots={slots} />
       </div>
-      <div className="md:col-span-1 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">{raffle.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold mb-1">Descripción</h3>
-              <p className="text-sm text-muted-foreground">{raffle.description}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-1">Términos y Condiciones</h3>
-              <p className="text-sm text-muted-foreground">{raffle.terms}</p>
-            </div>
-          </CardContent>
-        </Card>
 
-        <RaffleFinalization raffle={raffle} />
+      <div className="grid md:grid-cols-3 gap-8 items-start">
+        <div className="md:col-span-2">
+          {/* Pass slots directly to the board */}
+          <RaffleBoard raffle={raffle} slots={slots} />
+        </div>
+        <div className="md:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-semibold">Términos y Condiciones</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{raffle.terms}</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

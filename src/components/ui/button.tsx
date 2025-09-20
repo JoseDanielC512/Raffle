@@ -19,7 +19,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-secondary/20",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        loading: "bg-primary text-primary-foreground cursor-not-allowed",
+        // CORRECCIÓN: La variante 'loading' ahora incluye explícitamente las clases de tamaño por defecto
+        // para asegurar que el botón tenga dimensiones incluso cuando está en estado de carga.
+        loading: "bg-primary text-primary-foreground cursor-not-allowed h-11 px-6 py-2",
       },
       size: {
         default: "h-11 px-6 py-2",
@@ -46,6 +48,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, children, disabled, ...props }, ref) => {
     const isDisabled = disabled || loading;
+    // La lógica de sobrescribir la variante a 'loading' sigue siendo útil para el color y el cursor.
     const buttonVariant = loading ? "loading" : variant;
 
     if (asChild) {
