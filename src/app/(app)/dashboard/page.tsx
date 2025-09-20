@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { getRafflesForUser, countActiveRafflesForUser } from "@/lib/firestore";
@@ -27,6 +27,7 @@ function DashboardSkeleton() {
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [raffles, setRaffles] = useState<(Raffle & { filledSlots: number })[]>([]);
   const [activeRafflesCount, setActiveRafflesCount] = useState(0);
   const [totalSoldSlots, setTotalSoldSlots] = useState(0);
@@ -35,47 +36,81 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
+
     async function fetchDashboardData() {
-      console.log("fetchDashboardData called. User:", user);
+
       if (user) {
         setDataLoading(true);
-        console.log("Fetching raffles for user UID:", user.uid);
-        const userRaffles = await getRafflesForUser(user.uid);
-        console.log("User Raffles fetched:", userRaffles);
-        const activeCount = await countActiveRafflesForUser(user.uid);
-        console.log("Active Raffles Count:", activeCount);
-        
-        const totalSold = userRaffles.reduce((sum, raffle) => sum + raffle.filledSlots, 0);
-        console.log("Total Sold Slots:", totalSold);
 
-        setRaffles(userRaffles);
-        setActiveRafflesCount(activeCount);
-        setTotalSoldSlots(totalSold);
-        const canCreate = activeCount < 2;
-        setCanCreateRaffle(canCreate);
-        console.log("Can Create Raffle:", canCreate);
-        setDataLoading(false);
+        try {
+          const userRaffles = await getRafflesForUser(user.uid);
+
+          const activeCount = await countActiveRafflesForUser(user.uid);
+
+          const totalSold = userRaffles.reduce((sum, raffle) => sum + raffle.filledSlots, 0);
+
+          setRaffles(userRaffles);
+          setActiveRafflesCount(activeCount);
+          setTotalSoldSlots(totalSold);
+          const canCreate = activeCount < 2;
+          setCanCreateRaffle(canCreate);
+        } catch (error) {
+          console.error('❌ [DASHBOARD] Error fetching dashboard data:', error);
+          toast({
+            title: "Error",
+            description: "No se pudieron cargar los datos del dashboard.",
+            variant: "destructive"
+          });
+        } finally {
+          setDataLoading(false);
+        }
       } else {
-        console.log("fetchDashboardData: No user found.");
+        setDataLoading(false);
       }
     }
 
-    console.log("Dashboard useEffect triggered. authLoading:", authLoading, "user:", user);
     if (!authLoading) {
       fetchDashboardData();
+    } else {
     }
   }, [user, authLoading, toast]);
 
-  const isLoading = authLoading || dataLoading;
+  // Listen for route changes to refresh data when returning to dashboard
+  useEffect(() => {
 
-  console.log("--- Dashboard Render ---");
-  console.log("authLoading:", authLoading);
-  console.log("dataLoading:", dataLoading);
-  console.log("isLoading:", isLoading);
-  console.log("user:", user);
-  console.log("activeRafflesCount:", activeRafflesCount);
-  console.log("canCreateRaffle:", canCreateRaffle);
-  console.log("------------------------");
+    if (pathname === '/dashboard' && !authLoading && user) {
+
+      // Small delay to ensure any revalidation has completed
+      const timer = setTimeout(() => {
+
+        const refreshData = async () => {
+          try {
+            const userRaffles = await getRafflesForUser(user.uid);
+
+            const activeCount = await countActiveRafflesForUser(user.uid);
+
+            const totalSold = userRaffles.reduce((sum, raffle) => sum + raffle.filledSlots, 0);
+
+            setRaffles(userRaffles);
+            setActiveRafflesCount(activeCount);
+            setTotalSoldSlots(totalSold);
+            const canCreate = activeCount < 2;
+            setCanCreateRaffle(canCreate);
+          } catch (error) {
+            console.error('❌ [DASHBOARD] Error refreshing dashboard data:', error);
+          }
+        };
+        refreshData();
+      }, 500);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    } else {
+    }
+  }, [pathname, authLoading, user]);
+
+  const isLoading = authLoading || dataLoading;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 md:p-8 lg:p-12">
@@ -126,28 +161,30 @@ export default function Dashboard() {
       )}
 
       {/* Action Section - Create Raffle Button */}
-      <div className="mb-8 md:mb-12 text-center flex justify-center" style={{minHeight: '60px'}}>
-        <div className="inline-block">
-          {canCreateRaffle ? (
-            <button
-              onClick={() => router.push('/raffle/create')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 min-w-[200px] px-8 py-4 text-base font-semibold h-12 inline-flex items-center justify-center rounded-lg font-medium border-0 outline-none"
-              style={{display: 'inline-flex', visibility: 'visible'}}
-            >
-              <PlusCircle className="h-5 w-5 mr-2" />
-              <span>Crear Nueva Rifa</span>
-            </button>
-          ) : (
-            <button
-              disabled
-              className="cursor-not-allowed bg-muted text-muted-foreground shadow-inner min-w-[200px] px-8 py-4 text-base font-semibold h-12 inline-flex items-center justify-center rounded-lg border-0 outline-none"
-              style={{display: 'inline-flex', visibility: 'visible'}}
-            >
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Límite de Rifas Alcanzado
-            </button>
-          )}
-        </div>
+      <div className="mb-8 md:mb-12 text-center flex justify-center" style={{ minHeight: '60px' }}>
+        {isLoading ? (
+          <Skeleton className="h-[52px] w-[240px] rounded-lg" />
+        ) : user && canCreateRaffle ? (
+          <Button
+            asChild
+            size="lg"
+            className="shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90 transform hover:scale-105 min-w-[200px] px-8 py-4 text-base font-semibold"
+          >
+            <Link href="/raffle/create" className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5" />
+              Crear Nueva Rifa
+            </Link>
+          </Button>
+        ) : user ? (
+          <Button
+            disabled
+            size="lg"
+            className="cursor-not-allowed bg-muted text-muted-foreground shadow-inner min-w-[200px] px-8 py-4 text-base font-semibold"
+          >
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Límite de Rifas Alcanzado
+          </Button>
+        ) : null}
       </div>
 
       {/* Raffles List Section */}
@@ -172,23 +209,25 @@ export default function Dashboard() {
               Comienza tu primera rifa para empezar a vender casillas.
             </p>
             {canCreateRaffle ? (
-              <button
-                onClick={() => router.push('/raffle/create')}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 min-w-[200px] px-8 py-4 text-base font-semibold h-12 inline-flex items-center justify-center rounded-lg font-medium border-0 outline-none"
-                style={{display: 'inline-flex', visibility: 'visible'}}
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 min-w-[200px] px-8 py-4 text-base font-semibold"
               >
-                <PlusCircle className="h-5 w-5 mr-2" />
-                <span>Crear mi Primera Rifa</span>
-              </button>
+                <Link href="/raffle/create" className="flex items-center gap-2">
+                  <PlusCircle className="h-5 w-5" />
+                  Crear mi Primera Rifa
+                </Link>
+              </Button>
             ) : (
-              <button
+              <Button
                 disabled
-                className="cursor-not-allowed bg-muted text-muted-foreground shadow-inner min-w-[200px] px-8 py-4 text-base font-semibold h-12 inline-flex items-center justify-center rounded-lg border-0 outline-none"
-                style={{display: 'inline-flex', visibility: 'visible'}}
+                size="lg"
+                className="cursor-not-allowed bg-muted text-muted-foreground shadow-inner min-w-[200px] px-8 py-4 text-base font-semibold"
               >
                 <PlusCircle className="mr-2 h-5 w-5" />
                 No puedes crear más rifas
-              </button>
+              </Button>
             )}
           </div>
         )}

@@ -2,6 +2,7 @@
 
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
+import { getAdminDb } from './firebase-admin';
 import type { Raffle, RaffleSlot } from './definitions';
 
 /**
@@ -13,10 +14,13 @@ export async function countActiveRafflesForUser(userId: string): Promise<number>
   if (!userId) {
     return 0;
   }
+
   try {
-    const rafflesRef = collection(db, 'raffles');
-    const q = query(rafflesRef, where('ownerId', '==', userId), where('status', '==', 'active'));
-    const querySnapshot = await getDocs(q);
+    const adminDb = getAdminDb();
+    const rafflesRef = adminDb.collection('raffles');
+    const q = rafflesRef.where('ownerId', '==', userId).where('status', '==', 'active');
+    const querySnapshot = await q.get();
+
     return querySnapshot.size;
   } catch (error) {
     console.error("Error counting active raffles for user: ", error);
@@ -31,35 +35,49 @@ export async function countActiveRafflesForUser(userId: string): Promise<number>
  */
 export async function getRafflesForUser(userId: string): Promise<(Raffle & { filledSlots: number })[]> {
   if (!userId) {
-    console.log('No user ID provided, returning empty array.');
     return [];
   }
 
   try {
-    const rafflesRef = collection(db, 'raffles');
-    const q = query(rafflesRef, where('ownerId', '==', userId));
-    const querySnapshot = await getDocs(q);
-    
+    const adminDb = getAdminDb();
+    const rafflesRef = adminDb.collection('raffles');
+    const q = rafflesRef.where('ownerId', '==', userId);
+    const querySnapshot = await q.get();
+
+    if (querySnapshot.size === 0) {
+      return [];
+    }
+
     const rafflesWithSlots = await Promise.all(
       querySnapshot.docs.map(async (doc) => {
         const raffleData = doc.data() as Omit<Raffle, 'id'>;
         const raffleId = doc.id;
-        
-        // Get slots for this raffle
-        const slotsRef = collection(db, 'raffles', raffleId, 'slots');
-        const slotsSnapshot = await getDocs(slotsRef);
-        
-        // Count filled slots (paid or reserved)
-        const filledSlots = slotsSnapshot.docs.filter(slotDoc => {
-          const slot = slotDoc.data();
-          return slot.status === 'paid' || slot.status === 'reserved';
-        }).length;
-        
-        return {
-          id: raffleId,
-          ...raffleData,
-          filledSlots,
-        };
+
+        try {
+          // Get slots for this raffle
+          const slotsRef = adminDb.collection('raffles').doc(raffleId).collection('slots');
+          const slotsSnapshot = await slotsRef.get();
+
+          // Count filled slots (paid or reserved)
+          const filledSlots = slotsSnapshot.docs.filter(slotDoc => {
+            const slot = slotDoc.data();
+            return slot.status === 'paid' || slot.status === 'reserved';
+          }).length;
+
+          return {
+            id: raffleId,
+            ...raffleData,
+            filledSlots,
+          };
+        } catch (slotsError) {
+          console.error(`Error fetching slots for raffle ${raffleId}:`, slotsError);
+          // Return raffle with 0 filled slots if slots query fails
+          return {
+            id: raffleId,
+            ...raffleData,
+            filledSlots: 0,
+          };
+        }
       })
     );
 

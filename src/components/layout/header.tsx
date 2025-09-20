@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { CircleUser, Menu, Package2, Loader2 } from 'lucide-react';
+import { CircleUser, Package2, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
 import { useAuth } from '@/context/auth-context';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
@@ -89,43 +88,6 @@ export function Header() {
           </nav>
         </div>
 
-        {/* Menú móvil */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <button className="h-9 w-9 p-0 md:flex md:items-center md:justify-center">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-            <SheetHeader>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Package2 className="h-5 w-5" />
-                </div>
-                <span className="font-bold text-lg">Lucky 100 Raffle</span>
-              </div>
-            </SheetHeader>
-            <nav className="grid gap-4 py-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
-                    isActiveLink(link.href) 
-                      ? "bg-accent text-accent-foreground shadow-sm" 
-                      : "text-muted-foreground"
-                  )}
-                  aria-label={`Navegar a ${link.label}`}
-                >
-                  {link.icon && <link.icon className="h-4 w-4" />}
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </SheetContent>
-        </Sheet>
 
         {/* Usuario/autenticación */}
         <div className="flex items-center gap-2">

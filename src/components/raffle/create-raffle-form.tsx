@@ -36,12 +36,19 @@ export function CreateRaffleForm() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [terms, setTerms] = useState('');
+  const [idToken, setIdToken] = useState('');
 
   useEffect(() => {
     if (generateState.name) setName(generateState.name);
     if (generateState.description) setDescription(generateState.description);
     if (generateState.terms) setTerms(generateState.terms);
   }, [generateState]);
+
+  useEffect(() => {
+    if (user) {
+      user.getIdToken().then(setIdToken);
+    }
+  }, [user]);
 
   const isFormDisabled = authLoading || !user;
 
@@ -87,7 +94,7 @@ export function CreateRaffleForm() {
                   Debes iniciar sesión para poder crear una rifa.
                 </p>
               )}
-              <input type="hidden" name="ownerId" value={user?.uid || ''} />
+              <input type="hidden" name="idToken" value={idToken} />
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre de la Rifa</Label>
                 <Input 
