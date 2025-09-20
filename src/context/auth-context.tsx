@@ -11,6 +11,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  isLoggingOut: boolean;
+  setIsLoggingOut: (value: boolean) => void;
 }
 
 // Create the context
@@ -21,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [toast]);
 
-  const value = { user, loading, error };
+  const value = { user, loading, error, isLoggingOut, setIsLoggingOut };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

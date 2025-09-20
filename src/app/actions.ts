@@ -71,10 +71,12 @@ export async function loginAction(prevState: AuthState, formData: FormData): Pro
 }
 
 export async function logoutAction() {
-  await auth.signOut();
-  // Esperar un momento para que el contexto se actualice
-  await new Promise(resolve => setTimeout(resolve, 500));
-  redirect('/');
+  try {
+    await auth.signOut();
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 // --- AI GENERATION --- //

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CircleUser, Menu, Package2, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -14,22 +14,37 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
 import { useAuth } from '@/context/auth-context';
-import { logoutAction } from '@/app/actions';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
-  const { user, loading } = useAuth();
+  const { user, loading, setIsLoggingOut } = useAuth();
   const pathname = usePathname();
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [localLoggingOut, setLocalLoggingOut] = React.useState(false);
 
   const handleLogout = async () => {
+    setLocalLoggingOut(true);
     setIsLoggingOut(true);
     try {
-      await logoutAction();
+      await auth.signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente."
+      });
+      router.push('/');
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    } finally {
+      console.error('Error en logout:', error);
+      toast({
+        title: "Error",
+        description: 'Error al cerrar sesión. Intenta de nuevo.',
+        variant: "destructive"
+      });
       setIsLoggingOut(false);
+      setLocalLoggingOut(false);
     }
   };
 
@@ -150,10 +165,10 @@ export function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleLogout}
-                  disabled={isLoggingOut}
+                  disabled={localLoggingOut}
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
-                  {isLoggingOut ? (
+                  {localLoggingOut ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Cerrando sesión...
