@@ -36,7 +36,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Si no hay usuario pero aún está cargando, el bloque anterior se encarga.
   // Si no hay usuario y no está cargando, el useEffect ya habrá iniciado la redirección.
   if (user) {
-    return <div className="p-4 md:gap-8 md:p-8">{children}</div>;
+    return (
+      <div className="p-4 md:gap-8 md:p-8">{children}</div>
+    );
   }
 
   // Mientras se redirige, no renderizar nada.

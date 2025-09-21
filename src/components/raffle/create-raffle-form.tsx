@@ -14,23 +14,33 @@ import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function GenerationSubmitButton() {
   const { pending } = useFormStatus();
+
   return (
     <Button type="submit" disabled={pending} className="w-full md:w-auto">
-      {pending ? 'Generando...' : 'Generar con IA'}
+      {pending ? (
+        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...</>
+      ) : (
+        'Generar con IA'
+      )}
     </Button>
   );
 }
 
 function RaffleSubmitButton() {
   const { pending } = useFormStatus();
+
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? 'Creando Rifa...' : 'Crear Rifa'}
+      {pending ? (
+        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando Rifa...</>
+      ) : (
+        'Crear Rifa'
+      )}
     </Button>
   );
 }

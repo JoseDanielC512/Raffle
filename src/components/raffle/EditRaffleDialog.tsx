@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pencil, Save } from 'lucide-react';
 import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateRaffleAction } from '@/app/actions';
 
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +37,26 @@ interface EditRaffleDialogProps {
   children: React.ReactNode;
 }
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Guardando...
+        </>
+      ) : (
+        <>
+          <Save className="mr-2 h-4 w-4" />
+          Guardar Cambios
+        </>
+      )}
+    </Button>
+  );
+}
+
 export default function EditRaffleDialog({
   raffleId,
   currentName,
@@ -51,30 +72,15 @@ export default function EditRaffleDialog({
   );
 
   const { toast } = useToast();
+  
+  const [updateState, updateDispatch] = useActionState(updateRaffleAction, { message: '', success: false });
 
-  const handleUpdate = async (prevState: any, formData: FormData) => {
-    return await updateRaffleAction(formData);
-  };
-  
-  // El tipo del estado es el tipo de retorno de la acción.
-  // useActionState añadirá 'pending', 'error', etc.
-  type ActionReturnType = Awaited<ReturnType<typeof handleUpdate>>;
-  
-  const initialState: ActionReturnType = {
-    message: '',
-    success: false,
-  };
-  
-  const [updateState, updateDispatch] = useActionState<ActionReturnType, FormData>(handleUpdate, initialState);
-
-  // Obtener el token de ID cuando el usuario cambia o el componente se monta
   useEffect(() => {
     if (user) {
       user.getIdToken().then(setIdToken);
     }
   }, [user]);
 
-  // Manejar el resultado de la Server Action
   useEffect(() => {
     if (updateState.success && updateState.message) {
       toast({
@@ -82,7 +88,7 @@ export default function EditRaffleDialog({
         description: updateState.message,
         className: 'bg-green-600 text-white border-green-700',
       });
-      setOpen(false); // Cerrar el modal al guardar
+      setOpen(false);
     } else if (!updateState.success && updateState.message) {
       toast({
         title: 'Error',
@@ -93,7 +99,6 @@ export default function EditRaffleDialog({
     }
   }, [updateState, toast]);
 
-  // Resetear el formulario con los valores actuales cuando se abre el modal
   const handleOpenChange = (newOpenState: boolean) => {
     setOpen(newOpenState);
     if (newOpenState) {
@@ -165,19 +170,7 @@ export default function EditRaffleDialog({
           </div>
           
           <DialogFooter>
-            <Button type="submit" disabled={(updateState as any).pending}>
-              {(updateState as any).pending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Guardar Cambios
-                </>
-              )}
-            </Button>
+            <SubmitButton />
           </DialogFooter>
         </form>
       </DialogContent>

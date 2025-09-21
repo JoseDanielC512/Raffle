@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { loginAction, type AuthState } from '@/app/actions';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -18,36 +18,35 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from 'lucide-react';
 
 export function LoginForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    const formData = new FormData(event.currentTarget);
-
+    
     startTransition(async () => {
-      const initialState: AuthState = { message: null, errors: {} };
-      const result = await loginAction(initialState, formData);
+      const formData = new FormData(event.currentTarget);
 
-      if (result.success && result.data) {
-        const { email, password } = result.data;
-        try {
-          // Autenticamos directamente en el cliente
+      try {
+        const initialState: AuthState = { message: null, errors: {} };
+        const result = await loginAction(initialState, formData);
+
+        if (result.success && result.data) {
+          const { email, password } = result.data;
           await signInWithEmailAndPassword(auth, email, password);
-          // Navegamos al dashboard. El AuthContext se actualizará automáticamente.
           router.push('/dashboard');
-        } catch (authError: any) {
-          setError('Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.');
+        } else {
+          if (result.message) {
+            setError(result.message);
+          }
         }
-      } else {
-        // Si hay un mensaje de error, lo mostramos.
-        if (result.message) {
-          setError(result.message);
-        }
+      } catch (authError: any) {
+        setError('Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.');
       }
     });
   };
@@ -87,7 +86,7 @@ export function LoginForm() {
             </Alert>
           )}
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Iniciando sesión...</> : 'Iniciar Sesión'}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">

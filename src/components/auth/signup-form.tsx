@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { useEffect } from 'react';
 import { signupAction, type AuthState } from '@/app/actions';
 import { useAuth } from '@/context/auth-context';
@@ -18,6 +18,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creando cuenta...</> : 'Crear una cuenta'}
+    </Button>
+  );
+}
 
 export function SignupForm() {
   const router = useRouter();
@@ -77,14 +88,5 @@ export function SignupForm() {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? 'Creando cuenta...' : 'Crear una cuenta'}
-    </Button>
   );
 }
