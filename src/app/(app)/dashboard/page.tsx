@@ -55,7 +55,6 @@ export default function Dashboard() {
           const canCreate = activeCount < 2;
           setCanCreateRaffle(canCreate);
         } catch (error) {
-          console.error('❌ [DASHBOARD] Error fetching dashboard data:', error);
           toast({
             title: "Error",
             description: "No se pudieron cargar los datos del dashboard.",
@@ -97,7 +96,6 @@ export default function Dashboard() {
             const canCreate = activeCount < 2;
             setCanCreateRaffle(canCreate);
           } catch (error) {
-            console.error('❌ [DASHBOARD] Error refreshing dashboard data:', error);
           }
         };
         refreshData();

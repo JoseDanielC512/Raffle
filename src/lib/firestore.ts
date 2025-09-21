@@ -23,7 +23,6 @@ export async function countActiveRafflesForUser(userId: string): Promise<number>
 
     return querySnapshot.size;
   } catch (error) {
-    console.error("Error counting active raffles for user: ", error);
     return 0; // In case of error, assume 0 to allow creation or show 0 on UI
   }
 }
@@ -70,7 +69,6 @@ export async function getRafflesForUser(userId: string): Promise<(Raffle & { fil
             filledSlots,
           };
         } catch (slotsError) {
-          console.error(`Error fetching slots for raffle ${raffleId}:`, slotsError);
           // Return raffle with 0 filled slots if slots query fails
           return {
             id: raffleId,
@@ -83,7 +81,6 @@ export async function getRafflesForUser(userId: string): Promise<(Raffle & { fil
 
     return rafflesWithSlots;
   } catch (error) {
-    console.error("Error fetching user's raffles: ", error);
     return [];
   }
 }
@@ -104,7 +101,6 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
     }
     return null;
   } catch (error) {
-    console.error("Error fetching raffle by ID: ", error);
     return null;
   }
 }
@@ -126,7 +122,6 @@ export async function getSlotsForRaffle(raffleId: string): Promise<RaffleSlot[]>
 
     return slots;
   } catch (error) {
-    console.error("Error fetching slots for raffle: ", error);
     return [];
   }
 }

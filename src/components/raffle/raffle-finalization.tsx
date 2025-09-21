@@ -51,7 +51,6 @@ export default function RaffleFinalization({ raffle, slots }: { raffle: Raffle; 
         description: "La rifa ha sido finalizada.",
       });
     } catch (error) {
-      console.error(error);
       toast({
         title: "Error",
         description: "No se pudo finalizar la rifa.",

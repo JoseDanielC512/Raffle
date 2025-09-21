@@ -35,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setError(null);
     }, (error) => {
-      console.error('Auth state change error:', error);
       setError(error.message);
       toast({
         title: "Error de Autenticación",

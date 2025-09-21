@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { ArrowLeft, Pencil, Link } from 'lucide-react';
 import { doc, onSnapshot, collection, getDoc } from 'firebase/firestore';
 
 import { db } from '@/lib/firebase';
@@ -20,6 +20,8 @@ import RaffleFinalization from '@/components/raffle/raffle-finalization';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
 import EditRaffleDialog from '@/components/raffle/EditRaffleDialog';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 function RafflePageSkeleton() {
   return (
@@ -55,6 +57,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const resolvedParams = use(params);
+  const { toast } = useToast();
 
   const paidSlots = slots.filter((slot) => slot.status === 'paid').length;
 
@@ -65,6 +68,31 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
       )
     );
   }, []);
+
+  const handleCopyPublicUrl = useCallback(() => {
+    if (!raffle || !raffle.id) {
+      // Esto no debería ocurrir si el botón está visible, pero es una salvaguarda.
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo generar el enlace, los datos de la rifa no están disponibles.",
+      });
+      return;
+    }
+    const publicUrl = `${window.location.origin}/public/raffle/${raffle.id}`;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      toast({
+        title: "¡Enlace copiado!",
+        description: "El enlace público de la rifa ha sido copiado al portapapeles.",
+      });
+    }).catch((err) => {
+      toast({
+        variant: "destructive",
+        title: "Error al copiar",
+        description: "No se pudo copiar el enlace al portapapeles.",
+      });
+    });
+  }, [raffle, toast]); // Cambiado de raffle.id a raffle para satisfacer a TypeScript
 
   // Verificar autenticación y redirigir si es necesario
   useEffect(() => {
@@ -93,7 +121,6 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         }
       },
       (error) => {
-        console.error('Error listening to raffle:', error);
         // Si hay error de permisos, redirigir al login
         if (error instanceof Error && error.message.includes('permission-denied')) {
           router.push('/login');
@@ -119,7 +146,6 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         setLoading(false);
       },
       (error) => {
-        console.error('Error listening to slots:', error);
         // Si hay error de permisos en el listener, redirigir al login
         if (error instanceof Error && error.message.includes('permission-denied')) {
           router.push('/login');
@@ -185,8 +211,21 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                 </p>
               </div>
 
+              {/* Copy Link Button - Only visible to owner */}
+              {isOwner && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopyPublicUrl}
+                  className="ml-2"
+                  aria-label="Copiar enlace público"
+                >
+                  <Link className="h-4 w-4" />
+                </Button>
+              )}
+
               {/* Edit Button - Only visible to owner and if raffle is not finalized */}
-              {user?.uid === raffle.ownerId && !raffle.finalizedAt && (
+              {isOwner && !raffle.finalizedAt && (
                 <div className="ml-auto">
                   <EditRaffleDialog
                     raffleId={raffle.id}

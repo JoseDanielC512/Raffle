@@ -55,7 +55,6 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
       success: true
     };
   } catch (error: any) {
-    console.error("Signup Error:", error);
     if (error.code === 'auth/email-already-in-use') return { message: 'Este correo ya está en uso.' };
     if (error.code === 'auth/weak-password') return { message: 'La contraseña es muy débil.' };
     if (error.code === 'auth/invalid-email') return { message: 'El correo electrónico no es válido.' };
@@ -100,7 +99,6 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
 
   const validatedFields = CreateRaffleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
-    console.error('❌ [CREATE_RAFFLE_ACTION] Validation failed:', validatedFields.error.flatten().fieldErrors);
     throw new Error('La validación de los campos falló.');
   }
 
@@ -112,7 +110,6 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
   } catch (error) {
-    console.error("❌ [CREATE_RAFFLE_ACTION] Error verifying ID token:", error);
     throw new Error('Error de autenticación: El token no es válido.');
   }
 
@@ -121,7 +118,6 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
     const activeRaffleCount = await countActiveRafflesForUserAdmin(ownerId);
 
     if (activeRaffleCount >= 2) {
-      console.error('❌ [CREATE_RAFFLE_ACTION] User has reached raffle limit');
       throw new Error('Has alcanzado el límite de 2 rifas activas. No puedes crear más rifas hasta finalizar una existente.');
     }
 
@@ -147,7 +143,6 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
     }
     await batch.commit();
   } catch (error) {
-    console.error("❌ [CREATE_RAFFLE_ACTION] Error creating raffle with admin SDK:", error);
     throw new Error(error instanceof Error ? error.message : 'Error de base de datos: No se pudo crear la rifa.');
   }
 
@@ -155,7 +150,6 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
     revalidatePath('/dashboard', 'page');
     revalidatePath('/', 'layout');
   } catch (error) {
-    console.error('❌ [CREATE_RAFFLE_ACTION] Error during revalidation:', error);
   }
 
   redirect(`/raffle/${raffleId}`);
@@ -182,7 +176,6 @@ export async function updateSlotAction(formData: FormData) {
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
   } catch (error) {
-    console.error("Error verifying ID token:", error);
     throw new Error('Error de autenticación: El token no es válido.');
   }
 

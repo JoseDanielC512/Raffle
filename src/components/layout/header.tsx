@@ -33,7 +33,6 @@ export function Header() {
       });
       router.push('/');
     } catch (error) {
-      console.error('Error en logout:', error);
       toast({
         title: "Error",
         description: 'Error al cerrar sesión. Intenta de nuevo.',

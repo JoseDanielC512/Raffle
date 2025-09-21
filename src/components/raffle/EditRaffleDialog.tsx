@@ -79,7 +79,6 @@ export default function EditRaffleDialog({
       });
       setOpen(false); // Cerrar el modal al guardar
     } catch (error) {
-      console.error('Error updating raffle:', error);
       toast({
         title: 'Error',
         description: 'No se pudo actualizar la rifa. Inténtalo de nuevo.',

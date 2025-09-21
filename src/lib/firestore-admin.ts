@@ -16,7 +16,6 @@ export async function countActiveRafflesForUserAdmin(userId: string): Promise<nu
     const querySnapshot = await q.get();
     return querySnapshot.size;
   } catch (error) {
-    console.error("Error counting active raffles for user (admin):", error);
     // In a secure server environment, we should probably throw the error
     // or handle it more gracefully than returning 0.
     throw error;
