@@ -104,6 +104,7 @@ export function CreateRaffleForm() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isFormDisabled}
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -116,6 +117,7 @@ export function CreateRaffleForm() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={isFormDisabled}
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -128,6 +130,7 @@ export function CreateRaffleForm() {
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}
                   disabled={isFormDisabled}
+                  required
                 />
               </div>
             </CardContent>

@@ -168,15 +168,46 @@ const UpdateSlotSchema = z.object({
   slotNumber: z.coerce.number(),
   participantName: z.string(),
   status: z.enum(['available', 'reserved', 'paid']),
+  idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
 export async function updateSlotAction(formData: FormData) {
   // This action would also need to be converted to use the Admin SDK
   // for proper server-side authentication and authorization.
-  const { raffleId, slotNumber, participantName, status } = UpdateSlotSchema.parse(Object.fromEntries(formData.entries()));
-  const db = getAdminDb(); // Example of conversion
-  const slotRef = db.collection('raffles').doc(raffleId).collection('slots').doc(String(slotNumber));
-  await slotRef.update({ participantName, status });
+  const { raffleId, slotNumber, participantName, status, idToken } = UpdateSlotSchema.parse(Object.fromEntries(formData.entries()));
+
+  let ownerId: string;
+  try {
+    const adminAuth = getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    ownerId = decodedToken.uid;
+  } catch (error) {
+    console.error("Error verifying ID token:", error);
+    throw new Error('Error de autenticación: El token no es válido.');
+  }
+
+  const adminDb = getAdminDb();
+  const raffleRef = adminDb.collection('raffles').doc(raffleId);
+  const raffleDoc = await raffleRef.get();
+  if (!raffleDoc.exists) {
+    throw new Error('Rifa no encontrada.');
+  }
+  const raffle = raffleDoc.data();
+  if (!raffle) {
+    throw new Error('Los datos de la rifa no se encontraron.');
+  }
+  if (raffle.ownerId !== ownerId) {
+    throw new Error('No tienes permisos para editar esta casilla.');
+  }
+
+  const slotRef = adminDb.collection('raffles').doc(raffleId).collection('slots').doc(String(slotNumber));
+  await slotRef.update({ 
+    participantName: participantName || null,
+    status,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  revalidatePath(`/raffle/${raffleId}`);
   return { message: 'Casilla actualizada con éxito.' };
 }
 

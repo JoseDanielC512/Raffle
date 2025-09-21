@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useCallback } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { doc, onSnapshot, collection, getDoc } from 'firebase/firestore';
@@ -57,6 +57,14 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const resolvedParams = use(params);
 
   const paidSlots = slots.filter((slot) => slot.status === 'paid').length;
+
+  const handleSlotUpdate = useCallback((slotNumber: number, updates: Partial<RaffleSlot>) => {
+    setSlots(prevSlots =>
+      prevSlots.map(slot =>
+        slot.slotNumber === slotNumber ? { ...slot, ...updates } : slot
+      )
+    );
+  }, []);
 
   // Verificar autenticación y redirigir si es necesario
   useEffect(() => {
@@ -147,6 +155,8 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
     return <RafflePageSkeleton />;
   }
 
+  const isOwner = user?.uid === raffle.ownerId;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-8">
@@ -202,13 +212,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         <div className="space-y-8">
           {/* Tablero Full-Width */}
           <section className="w-full">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
-              <h2 className="text-2xl font-bold text-foreground">Tablero de Rifa</h2>
-              <div className="text-lg font-semibold text-primary">
-                {paidSlots}/100 casillas vendidas
-              </div>
-            </div>
-            <RaffleBoard raffle={raffle} slots={slots} />
+            <RaffleBoard raffle={raffle} slots={slots} isOwner={isOwner} onSlotUpdate={handleSlotUpdate} />
           </section>
 
           {/* Panels en Grid Horizontal */}

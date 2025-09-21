@@ -1,17 +1,50 @@
 import type { Raffle, RaffleSlot as RaffleSlotType } from "@/lib/definitions";
 import RaffleSlot from "./raffle-slot";
+import StatusLegend from "./StatusLegend";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
 
 type RaffleBoardProps = {
   raffle: Raffle;
   slots: RaffleSlotType[]; // Accept slots as a separate prop
+  isOwner: boolean;
+  onSlotUpdate?: (slotNumber: number, updates: Partial<RaffleSlotType>) => void;
 };
 
-export default function RaffleBoard({ raffle, slots }: RaffleBoardProps) {
+export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate }: RaffleBoardProps) {
   const availableSlots = slots.filter(slot => slot.status === 'available').length;
   const reservedSlots = slots.filter(slot => slot.status === 'reserved').length;
   const paidSlots = slots.filter(slot => slot.status === 'paid').length;
+  const [highlightedStatus, setHighlightedStatus] = useState<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+
+  // Efecto para el confeti cuando la rifa es finalizada
+  useEffect(() => {
+    if (raffle.finalizedAt && raffle.winnerSlotNumber && boardRef.current) {
+      // Pequeña espera para asegurar que el elemento está renderizado
+      const timer = setTimeout(() => {
+        const winnerElement = document.getElementById(`slot-${raffle.winnerSlotNumber}`);
+        if (winnerElement) {
+          const rect = winnerElement.getBoundingClientRect();
+          const centerX = (rect.left + rect.width / 2) / window.innerWidth;
+          const centerY = (rect.top + rect.height / 2) / window.innerHeight;
+
+          confetti({
+            particleCount: 150,
+            angle: 90,
+            spread: 90,
+            origin: { x: centerX, y: centerY },
+            colors: ['#fbbf24', '#f59e0b', '#d97706', '#92400e'], // Dorados y amarillos
+          });
+        }
+      }, 500); // 500ms de delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [raffle.finalizedAt, raffle.winnerSlotNumber]);
 
   return (
     <Card className="bg-gradient-to-br from-background to-muted/10 border-primary/20 shadow-lg">
@@ -25,51 +58,54 @@ export default function RaffleBoard({ raffle, slots }: RaffleBoardProps) {
               {raffle.name} - Progreso: {paidSlots + reservedSlots}/100
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              Disponibles: {availableSlots}
-            </Badge>
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-              Reservadas: {reservedSlots}
-            </Badge>
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              Pagadas: {paidSlots}
-            </Badge>
-          </div>
+          {/* Badges removed as per feedback - legend below provides the same info */}
         </div>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
-        <div className="grid grid-cols-10 gap-1 md:gap-2 max-w-2xl mx-auto">
+        <motion.div 
+          ref={boardRef}
+          className="grid grid-cols-10 gap-1 md:gap-2 max-w-2xl mx-auto"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.02, // Pequeño retraso entre cada hijo
+              },
+            },
+          }}
+        >
           {slots.map((slot) => (
-            <RaffleSlot
+            <motion.div
               key={slot.slotNumber}
-              slot={slot}
-              raffleId={raffle.id}
-              isWinner={raffle.winnerSlotNumber === slot.slotNumber}
-              isFinalized={!!raffle.finalizedAt}
-            />
+              id={`slot-${slot.slotNumber}`} // ID para el confeti
+              variants={{
+                hidden: { opacity: 0, scale: 0.8, y: 20 },
+                visible: { opacity: 1, scale: 1, y: 0 },
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <RaffleSlot
+                slot={slot}
+                raffleId={raffle.id}
+                isWinner={raffle.winnerSlotNumber === slot.slotNumber}
+                isFinalized={!!raffle.finalizedAt}
+                isOwner={isOwner}
+                onSlotUpdate={onSlotUpdate}
+                highlightedStatus={highlightedStatus}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Legend */}
-        <div className="flex justify-center items-center gap-6 mt-6 pt-4 border-t border-muted">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-500 rounded-sm shadow-sm"></div>
-            <span className="text-sm text-muted-foreground">Disponible</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-500 rounded-sm shadow-sm"></div>
-            <span className="text-sm text-muted-foreground">Reservada</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-600 rounded-sm shadow-sm"></div>
-            <span className="text-sm text-muted-foreground">Pagada</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-amber-400 rounded-sm shadow-sm"></div>
-            <span className="text-sm text-muted-foreground">Ganadora</span>
-          </div>
-        </div>
+        <StatusLegend
+          availableSlots={availableSlots}
+          reservedSlots={reservedSlots}
+          paidSlots={paidSlots}
+          highlightedStatus={highlightedStatus}
+          setHighlightedStatus={setHighlightedStatus}
+        />
       </CardContent>
     </Card>
   );

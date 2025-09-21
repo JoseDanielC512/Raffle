@@ -75,6 +75,7 @@ export default function EditRaffleDialog({
       toast({
         title: 'Rifa actualizada',
         description: 'Los cambios se han guardado correctamente.',
+        className: 'bg-green-600 text-white border-green-700',
       });
       setOpen(false); // Cerrar el modal al guardar
     } catch (error) {
@@ -83,6 +84,7 @@ export default function EditRaffleDialog({
         title: 'Error',
         description: 'No se pudo actualizar la rifa. Inténtalo de nuevo.',
         variant: 'destructive',
+        className: 'bg-red-600 text-white border-red-700',
       });
     } finally {
       setIsLoading(false);
@@ -103,7 +105,7 @@ export default function EditRaffleDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pencil className="h-5 w-5" />
@@ -115,7 +117,7 @@ export default function EditRaffleDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"

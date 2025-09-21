@@ -1,0 +1,77 @@
+import { Badge } from "@/components/ui/badge";
+import { Circle, Clock, CheckCircle, Crown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type StatusLegendProps = {
+  availableSlots: number;
+  reservedSlots: number;
+  paidSlots: number;
+  highlightedStatus: string | null;
+  setHighlightedStatus: (status: string | null) => void;
+};
+
+export default function StatusLegend({
+  availableSlots,
+  reservedSlots,
+  paidSlots,
+  highlightedStatus,
+  setHighlightedStatus,
+}: StatusLegendProps) {
+  const legendItems = [
+    {
+      status: "available",
+      label: "Disponibles",
+      count: availableSlots,
+      icon: Circle,
+      colorClasses: "bg-gradient-to-br from-green-500 to-green-600 text-white",
+    },
+    {
+      status: "reserved",
+      label: "Reservadas",
+      count: reservedSlots,
+      icon: Clock,
+      colorClasses: "bg-gradient-to-br from-yellow-500 to-yellow-600 text-white",
+    },
+    {
+      status: "paid",
+      label: "Pagadas",
+      count: paidSlots,
+      icon: CheckCircle,
+      colorClasses: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
+    },
+    {
+      status: "winner", // Este estado es especial y no viene de los props de conteo
+      label: "Ganadora",
+      count: 1, // Siempre habrá una ganadora al finalizar
+      icon: Crown,
+      colorClasses: "bg-gradient-to-br from-amber-400 to-yellow-500 text-yellow-900",
+    },
+  ];
+
+  return (
+    <div className="flex justify-center items-center gap-4 md:gap-6 mt-6 pt-4 border-t border-muted flex-wrap">
+      {legendItems.map((item) => {
+        const Icon = item.icon;
+        const isHighlighted = highlightedStatus === item.status;
+        return (
+          <div
+            key={item.status}
+            className={cn(
+              "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 border-transparent",
+              isHighlighted && "border-primary/50 bg-primary/5 shadow-sm"
+            )}
+            onMouseEnter={() => setHighlightedStatus(item.status)}
+            onMouseLeave={() => setHighlightedStatus(null)}
+          >
+            <div className={cn("p-1 rounded-md", item.colorClasses)}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              {item.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
