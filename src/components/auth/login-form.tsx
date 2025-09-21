@@ -55,7 +55,7 @@ export function LoginForm() {
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl font-headline">Iniciar Sesión</CardTitle>
+        <CardTitle className="text-lg font-semibold text-foreground">Iniciar Sesión</CardTitle>
         <CardDescription>
           Ingresa tu correo electrónico a continuación para iniciar sesión en tu cuenta
         </CardDescription>

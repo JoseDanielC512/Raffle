@@ -1,5 +1,5 @@
 import { Crown, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, triggerSlotConfetti } from "@/lib/utils";
 import type { RaffleSlot } from "@/lib/definitions";
 import EditSlotDialog from "./edit-slot-dialog";
 import {
@@ -40,10 +40,10 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
   const content = (
     <div
       className={cn(
-        "relative aspect-square w-full rounded-lg flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 p-1.5 group overflow-hidden",
+        "relative aspect-square w-full rounded-lg flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 p-1.5 group overflow-visible",
         statusClasses[slot.status],
         loserClasses,
-        isWinner && "animate-winner-pulse bg-gradient-to-br from-amber-400 to-yellow-500 text-yellow-900 ring-2 ring-amber-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
+        isWinner && "min-h-[2rem] animate-winner-pulse bg-gradient-to-br from-amber-400 to-yellow-500 text-yellow-900 ring-2 ring-amber-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
         isFinalized && !isWinner && slot.status !== 'paid' && "opacity-50 cursor-not-allowed hover:scale-100",
         // Hover específicos por estado
         slot.status === 'available' && isEditable && "hover:scale-110 hover:-translate-y-1",
@@ -54,24 +54,38 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
         isHighlighted && "border border-[0.5px] border-primary ring-4 ring-muted scale-105 shadow-xl"
       )}
     >
-      {/* Número de casilla */}
-      <span className="font-mono text-xs leading-tight drop-shadow-sm z-10 text-center w-full">
-        {slot.slotNumber}
-      </span>
-
-      {/* Nombre del participante */}
-      {slot.status === 'paid' && slot.participantName && (
-        <div className="hidden sm:flex items-center gap-1 mt-0.5 z-10">
-          <User className="w-2.5 h-2.5 opacity-80" />
-          <span className="text-[0.55rem] leading-tight text-center break-words w-full font-medium">
-            {slot.participantName}
-          </span>
+      {isWinner ? (
+        <div
+          className="absolute inset-0 flex items-center justify-center z-20"
+          onClick={async () => {
+            await triggerSlotConfetti(`slot-${slot.slotNumber}`);
+          }}
+          role="img"
+          aria-label="Casilla ganadora con coronita"
+          tabIndex={-1}
+        >
+          <Crown 
+            className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-amber-800 drop-shadow-lg shadow-amber-500/50 animate-bounce" 
+            aria-hidden="true"
+          />
         </div>
-      )}
+      ) : (
+        <>
+          {/* Número de casilla */}
+          <span className="font-mono text-xs leading-tight drop-shadow-sm z-10 text-center w-full">
+            {slot.slotNumber}
+          </span>
 
-      {/* Icono de ganador */}
-      {isWinner && (
-        <Crown className="absolute -top-1.5 -right-1.5 h-4 w-4 text-amber-700 drop-shadow-sm animate-crown-sparkle z-20" />
+          {/* Nombre del participante */}
+          {slot.status === 'paid' && slot.participantName && (
+            <div className="hidden sm:flex items-center gap-1 mt-0.5 z-10">
+              <User className="w-2.5 h-2.5 opacity-80" />
+              <span className="text-[0.55rem] leading-tight text-center break-words w-full font-medium">
+                {slot.participantName}
+              </span>
+            </div>
+          )}
+        </>
       )}
 
 

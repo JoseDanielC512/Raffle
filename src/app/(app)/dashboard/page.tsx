@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
-import { getRafflesForUser, countActiveRafflesForUser } from "@/lib/firestore";
+import { db } from "@/lib/firebase";
 import RaffleCard from "@/components/raffle/raffle-card";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import type { Raffle } from "@/lib/definitions";
+import type { Raffle, RaffleSlot } from "@/lib/definitions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -28,85 +29,94 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [raffles, setRaffles] = useState<(Raffle & { filledSlots: number })[]>([]);
   const [activeRafflesCount, setActiveRafflesCount] = useState(0);
   const [totalSoldSlots, setTotalSoldSlots] = useState(0);
   const [canCreateRaffle, setCanCreateRaffle] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
+  const [raffleSlots, setRaffleSlots] = useState<{ [raffleId: string]: RaffleSlot[] }>({});
+  const [rafflesData, setRafflesData] = useState<(Raffle & { id: string })[]>([]);
 
   useEffect(() => {
+    if (authLoading || !user) {
+      setDataLoading(false);
+      return;
+    }
 
-    async function fetchDashboardData() {
+    setDataLoading(true);
+    const rafflesUnsubscribe: (() => void)[] = [];
 
-      if (user) {
-        setDataLoading(true);
+    // Listener for user's raffles
+    const rafflesQuery = query(collection(db, 'raffles'), where('ownerId', '==', user.uid));
+    const rafflesUnsubscribeMain = onSnapshot(rafflesQuery, (querySnapshot) => {
+      const rafflesData: (Raffle & { id: string })[] = [];
+      querySnapshot.forEach((doc) => {
+        rafflesData.push({ id: doc.id, ...doc.data() } as Raffle & { id: string });
+      });
 
-        try {
-          const userRaffles = await getRafflesForUser(user.uid);
+      // Update active raffle count
+      const activeCount = rafflesData.filter(r => r.status === 'active').length;
+      setActiveRafflesCount(activeCount);
+      setCanCreateRaffle(activeCount < 2);
+      setRafflesData(rafflesData);
 
-          const activeCount = await countActiveRafflesForUser(user.uid);
-
-          const totalSold = userRaffles.reduce((sum, raffle) => sum + raffle.filledSlots, 0);
-
-          setRaffles(userRaffles);
-          setActiveRafflesCount(activeCount);
-          setTotalSoldSlots(totalSold);
-          const canCreate = activeCount < 2;
-          setCanCreateRaffle(canCreate);
-        } catch (error) {
-          toast({
-            title: "Error",
-            description: "No se pudieron cargar los datos del dashboard.",
-            variant: "destructive"
+      // Set up listeners for slots for each raffle
+      rafflesData.forEach(raffleDoc => {
+        const slotsRef = collection(db, 'raffles', raffleDoc.id, 'slots');
+        const slotsUnsubscribe = onSnapshot(slotsRef, (slotsSnapshot) => {
+          const slotsData: RaffleSlot[] = [];
+          slotsSnapshot.forEach(slotDoc => {
+            slotsData.push({ id: slotDoc.id, ...slotDoc.data() } as unknown as RaffleSlot);
           });
-        } finally {
-          setDataLoading(false);
-        }
-      } else {
-        setDataLoading(false);
+          
+          setRaffleSlots(prev => ({
+            ...prev,
+            [raffleDoc.id]: slotsData
+          }));
+        });
+        rafflesUnsubscribe.push(slotsUnsubscribe);
+      });
+      
+      setDataLoading(false);
+    }, (error) => {
+      console.error("Error listening to raffles: ", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los datos del dashboard en tiempo real.",
+        variant: "destructive"
+      });
+      setDataLoading(false);
+    });
+    
+    rafflesUnsubscribe.push(rafflesUnsubscribeMain);
+
+    // Cleanup function
+    return () => {
+      rafflesUnsubscribe.forEach(unsubscribe => unsubscribe());
+    };
+  }, [user, authLoading, toast]); // Removed raffleSlots from dependency array
+
+  const raffles = useMemo(() => {
+    return rafflesData.map((raffle: Raffle & { id: string }) => {
+      const slots = raffleSlots[raffle.id] || [];
+      const filledSlots = slots.filter(s => s.status === 'paid' || s.status === 'reserved').length;
+      let winnerName: string | undefined;
+      if (raffle.finalizedAt && raffle.winnerSlotNumber) {
+        const winnerSlot = slots.find(s => s.slotNumber === raffle.winnerSlotNumber);
+        winnerName = winnerSlot?.participantName || 'No asignado';
       }
-    }
-
-    if (!authLoading) {
-      fetchDashboardData();
-    } else {
-    }
-  }, [user, authLoading, toast]);
-
-  // Listen for route changes to refresh data when returning to dashboard
-  useEffect(() => {
-
-    if (pathname === '/dashboard' && !authLoading && user) {
-
-      // Small delay to ensure any revalidation has completed
-      const timer = setTimeout(() => {
-
-        const refreshData = async () => {
-          try {
-            const userRaffles = await getRafflesForUser(user.uid);
-
-            const activeCount = await countActiveRafflesForUser(user.uid);
-
-            const totalSold = userRaffles.reduce((sum, raffle) => sum + raffle.filledSlots, 0);
-
-            setRaffles(userRaffles);
-            setActiveRafflesCount(activeCount);
-            setTotalSoldSlots(totalSold);
-            const canCreate = activeCount < 2;
-            setCanCreateRaffle(canCreate);
-          } catch (error) {
-          }
-        };
-        refreshData();
-      }, 500);
-
-      return () => {
-        clearTimeout(timer);
+      return {
+        ...raffle,
+        filledSlots,
+        winnerName,
       };
-    } else {
-    }
-  }, [pathname, authLoading, user]);
+    });
+  }, [rafflesData, raffleSlots]);
+
+  useEffect(() => {
+    const totalSold = raffles.reduce((sum: number, raffle: Raffle & { filledSlots: number; winnerName?: string }) => sum + raffle.filledSlots, 0);
+    setTotalSoldSlots(totalSold);
+  }, [raffles]);
 
   const isLoading = authLoading || dataLoading;
 
@@ -125,9 +135,9 @@ export default function Dashboard() {
       {/* Analytics Summary */}
       {!isLoading && user && (
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
-          <Card className="bg-card/70 backdrop-blur-sm border-primary/20 hover:bg-card/80 transition-all duration-300 group">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary/70 transition-colors">
+          <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-2">
+              <CardTitle className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base">
                 Rifas Activas
               </CardTitle>
             </CardHeader>
@@ -140,9 +150,9 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-card/70 backdrop-blur-sm border-primary/20 hover:bg-card/80 transition-all duration-300 group">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary/70 transition-colors">
+          <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-2">
+              <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
                 Casillas Vendidas
               </CardTitle>
             </CardHeader>

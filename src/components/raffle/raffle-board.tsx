@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { triggerSlotConfetti } from "@/lib/utils";
 
 type RaffleBoardProps = {
   raffle: Raffle;
@@ -23,26 +23,8 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate }: Ra
 
   // Efecto para el confeti cuando la rifa es finalizada
   useEffect(() => {
-    if (raffle.finalizedAt && raffle.winnerSlotNumber && boardRef.current) {
-      // Pequeña espera para asegurar que el elemento está renderizado
-      const timer = setTimeout(() => {
-        const winnerElement = document.getElementById(`slot-${raffle.winnerSlotNumber}`);
-        if (winnerElement) {
-          const rect = winnerElement.getBoundingClientRect();
-          const centerX = (rect.left + rect.width / 2) / window.innerWidth;
-          const centerY = (rect.top + rect.height / 2) / window.innerHeight;
-
-          confetti({
-            particleCount: 150,
-            angle: 90,
-            spread: 90,
-            origin: { x: centerX, y: centerY },
-            colors: ['#fbbf24', '#f59e0b', '#d97706', '#92400e'], // Dorados y amarillos
-          });
-        }
-      }, 500); // 500ms de delay
-
-      return () => clearTimeout(timer);
+    if (raffle.finalizedAt && raffle.winnerSlotNumber) {
+      triggerSlotConfetti(`slot-${raffle.winnerSlotNumber}`);
     }
   }, [raffle.finalizedAt, raffle.winnerSlotNumber]);
 
@@ -51,7 +33,7 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate }: Ra
       <CardHeader className="pb-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <CardTitle className="text-2xl font-bold font-headline text-foreground">
+            <CardTitle className="text-xl font-bold text-foreground">
               Tablero de Rifas
             </CardTitle>
             <p className="text-muted-foreground mt-1">

@@ -27,6 +27,9 @@ const baseClasses =
 
 // This function replaces the need for cva
 const buttonVariants = (props: ButtonProps) => {
+  if (props == null) {
+    return cn(baseClasses, variants.variant.default, variants.size.default);
+  }
   const variant = props.variant || "default";
   const size = props.size || "default";
   return cn(
@@ -44,39 +47,41 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   loading?: boolean;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    const isDisabled = props.disabled || loading;
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+  if (props === undefined) {
+    return <button ref={ref} className={baseClasses} />;
+  }
+  const { className, variant = "default", size = "default", asChild = false, loading = false, children, ...restProps } = props;
+  const Comp = asChild ? Slot : "button";
+  const isDisabled = restProps.disabled || loading;
 
-    if (asChild) {
-      // When asChild is true, we render a Slot that passes its props to the child.
-      // The child is the actual element that will be rendered.
-      return (
-        <Slot
-          ref={ref}
-          className={cn(buttonVariants({ variant, size, className }))}
-          {...props}
-        >
-          {children}
-        </Slot>
-      );
-    }
-
+  if (asChild) {
+    // When asChild is true, we render a Slot that passes its props to the child.
+    // The child is the actual element that will be rendered.
     return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
+      <Slot
         ref={ref}
-        disabled={isDisabled}
-        {...props}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...restProps}
       >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {/* When loading, show a message, otherwise show the children */}
-        {loading ? <span>Cargando...</span> : children}
-      </button>
+        {children}
+      </Slot>
     );
   }
-);
+
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      disabled={isDisabled}
+      {...restProps}
+    >
+      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {/* When loading, show a message, otherwise show the children */}
+      {loading ? <span>Cargando...</span> : children}
+    </button>
+  );
+});
 Button.displayName = "Button";
 
 export { Button, buttonVariants };

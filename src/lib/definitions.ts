@@ -16,4 +16,5 @@ export type Raffle = {
   winnerSlotNumber: number | null;
   createdAt: string;
   finalizedAt: string | null;
+  finalizationDate: string | null; // Fecha de finalización programada
 };

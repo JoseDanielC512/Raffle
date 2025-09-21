@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Link } from 'lucide-react';
+import { ArrowLeft, Pencil, Link, Wifi, WifiOff, Crown } from 'lucide-react';
 import { doc, onSnapshot, collection, getDoc } from 'firebase/firestore';
 
 import { db } from '@/lib/firebase';
@@ -16,12 +16,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import RaffleFinalization from '@/components/raffle/raffle-finalization';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
 import EditRaffleDialog from '@/components/raffle/EditRaffleDialog';
+import FinalizeRaffleButton from '@/components/raffle/FinalizeRaffleButton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 function RafflePageSkeleton() {
   return (
@@ -54,12 +55,15 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [slots, setSlots] = useState<RaffleSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLiveConnected, setIsLiveConnected] = useState(true);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const resolvedParams = use(params);
   const { toast } = useToast();
 
   const paidSlots = slots.filter((slot) => slot.status === 'paid').length;
+
+  const winnerName = raffle?.finalizedAt && raffle.winnerSlotNumber ? slots.find(slot => slot.slotNumber === raffle.winnerSlotNumber)?.participantName || 'No asignado' : null;
 
   const handleSlotUpdate = useCallback((slotNumber: number, updates: Partial<RaffleSlot>) => {
     setSlots(prevSlots =>
@@ -121,6 +125,13 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         }
       },
       (error) => {
+        console.error("Error en listener de rafa:", error);
+        setIsLiveConnected(false);
+        toast({
+          variant: "destructive",
+          title: "Error de conexión",
+          description: "No se pudo conectar a la base de datos en tiempo real. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones que puedan bloquear la conexión.",
+        });
         // Si hay error de permisos, redirigir al login
         if (error instanceof Error && error.message.includes('permission-denied')) {
           router.push('/login');
@@ -146,6 +157,13 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         setLoading(false);
       },
       (error) => {
+        console.error("Error en listener de casillas:", error);
+        setIsLiveConnected(false);
+        toast({
+          variant: "destructive",
+          title: "Error de conexión",
+          description: "No se pudo conectar a la base de datos en tiempo real. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones que puedan bloquear la conexión.",
+        });
         // Si hay error de permisos en el listener, redirigir al login
         if (error instanceof Error && error.message.includes('permission-denied')) {
           router.push('/login');
@@ -186,6 +204,16 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-8">
+        {/* Indicador de Conexión */}
+        {!isLiveConnected && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <WifiOff className="h-4 w-4" />
+            <AlertDescription>
+              Conexión en tiempo real perdida. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones del navegador que puedan bloquear la conexión.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 pb-6 border-b border-border/50">
           <div className="space-y-3 flex-1">
@@ -231,6 +259,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                     raffleId={raffle.id}
                     currentName={raffle.name}
                     currentDescription={raffle.description}
+                    currentFinalizationDate={raffle.finalizationDate}
                   >
                     <button
                       className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors duration-200 group"
@@ -256,37 +285,35 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
 
           {/* Panels en Grid Horizontal */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-gradient-to-br from-background to-muted/10 border-primary/20 shadow-lg">
-              <CardHeader>
-                <CardTitle className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-2 h-2 bg-primary rounded-full"></span>
+            {/* Card: Términos y Condiciones */}
+            <Card className="flex flex-col bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
+              <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4">
+                <CardTitle className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base">
+                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                   Términos y Condiciones
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <CardContent className="pt-4 flex-grow max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-muted/10">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed tracking-tight">
                   {raffle.terms}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-muted/10 border-primary/20 shadow-lg">
-              <CardHeader>
-                <CardTitle className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
+            {/* Card: Información de la Rifa */}
+            <Card className="flex flex-col bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
+              <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">
                   <span className="w-2 h-2 bg-accent rounded-full"></span>
                   Información de la Rifa
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 pt-0">
+              <CardContent className="pt-4 space-y-4 flex-grow">
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Estado:</span>
-                  <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full ${
-                    raffle.finalizedAt
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <Badge variant={raffle.finalizedAt ? "destructive" : "secondary"} className="text-xs">
                     {raffle.finalizedAt ? 'Finalizada' : 'Activa'}
-                  </span>
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Casillas totales:</span>
@@ -296,16 +323,31 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                   <span className="text-xs sm:text-sm text-muted-foreground">Creada por:</span>
                   <span className="text-xs sm:text-sm font-medium">Organizador</span>
                 </div>
+                
+                {winnerName && (
+                  <div 
+                    className="mt-4 p-3 bg-amber-50/50 rounded-md space-y-2 border border-amber-200/50 transition-all duration-300 animate-in fade-in-0 slide-in-from-top-2" 
+                    role="region" 
+                    aria-label="Detalles de rifa finalizada"
+                  >
+                    <p className="font-semibold text-primary flex items-center gap-2 text-sm">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                      Slot Ganador: <span className="text-base font-bold text-amber-700">{raffle.winnerSlotNumber}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Ganador: <span className="font-medium text-primary">{winnerName}</span>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Mostrar el panel de finalización solo si el usuario es el dueño de la rifa 
-            {user?.uid === raffle.ownerId && (
-              <div className="lg:ml-auto self-start">
-              <RaffleFinalization raffle={raffle} slots={slots} />
+            {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
+            {isOwner && (
+              <div className="lg:col-span-2">
+                <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
               </div>
             )}
-            */}
           </div>
         </div>
       </div>

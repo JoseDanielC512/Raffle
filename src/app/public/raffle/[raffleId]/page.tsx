@@ -164,7 +164,7 @@ export default function PublicRafflePage({ params }: { params: Promise<{ raffleI
 
             <Card className="bg-gradient-to-br from-background to-muted/10 border-primary/20 shadow-lg">
               <CardHeader>
-                <CardTitle className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <span className="w-2 h-2 bg-accent rounded-full"></span>
                   Información de la Rifa
                 </CardTitle>

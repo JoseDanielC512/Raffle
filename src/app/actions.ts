@@ -92,6 +92,7 @@ const CreateRaffleSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
   description: z.string().min(1, 'La descripción es obligatoria.'),
   terms: z.string().min(1, 'Los términos son obligatorios.'),
+  finalizationDate: z.string().nullable().optional(), // Fecha de finalización en formato ISO string
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
@@ -132,6 +133,7 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
       winnerSlotNumber: null,
       createdAt: new Date().toISOString(),
       finalizedAt: null,
+      finalizationDate: raffleData.finalizationDate || null,
     };
 
     await newRaffleRef.set(newRaffle);
@@ -192,6 +194,9 @@ export async function updateSlotAction(formData: FormData) {
   if (raffle.ownerId !== ownerId) {
     throw new Error('No tienes permisos para editar esta casilla.');
   }
+  if (raffle.ownerId !== ownerId) {
+    throw new Error('No tienes permisos para editar esta casilla.');
+  }
 
   const slotRef = adminDb.collection('raffles').doc(raffleId).collection('slots').doc(String(slotNumber));
   await slotRef.update({ 
@@ -204,13 +209,139 @@ export async function updateSlotAction(formData: FormData) {
   return { message: 'Casilla actualizada con éxito.' };
 }
 
-export async function finalizeRaffleAction(raffleId: string) {
-  // This action also needs conversion to Admin SDK
-  if (!raffleId) throw new Error('Se requiere el ID de la rifa.');
+// --- RAFFLE UPDATE ACTION --- //
+
+const UpdateRaffleSchema = z.object({
+  raffleId: z.string().min(1, 'El ID de la rifa es obligatorio.'),
+  name: z.string().min(1, 'El nombre es obligatorio.'),
+  description: z.string().min(1, 'La descripción es obligatoria.'),
+  finalizationDate: z.string().nullable().optional(), // Fecha de finalización en formato ISO string
+  idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
+});
+
+export async function updateRaffleAction(formData: FormData): Promise<{ message: string; success: boolean }> {
+  const validatedFields = UpdateRaffleSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!validatedFields.success) {
+    // En un caso real, podrías querer devolver los errores de validación
+    throw new Error('La validación de los campos falló.');
+  }
+
+  const { raffleId, idToken, ...updateData } = validatedFields.data;
+
+  let ownerId: string;
+  try {
+    const adminAuth = getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    ownerId = decodedToken.uid;
+  } catch (error) {
+    throw new Error('Error de autenticación: El token no es válido.');
+  }
+
   const adminDb = getAdminDb();
-  await adminDb.runTransaction(async (transaction) => {
-    // ... transaction logic using adminDb ...
-  });
-  revalidatePath(`/raffle/${raffleId}`);
-  return { message: '¡Rifa finalizada con éxito!' };
+  const raffleRef = adminDb.collection('raffles').doc(raffleId);
+  const raffleDoc = await raffleRef.get();
+
+  if (!raffleDoc.exists) {
+    throw new Error('Rifa no encontrada.');
+  }
+
+  const raffle = raffleDoc.data();
+  if (!raffle) {
+    throw new Error('Los datos de la rifa no se encontraron.');
+  }
+  if (raffle.ownerId !== ownerId) {
+    throw new Error('No tienes permisos para editar esta rifa.');
+  }
+  
+  if (raffle.status === 'finalized') {
+    throw new Error('No se puede editar una rifa que ya ha sido finalizada.');
+  }
+
+  try {
+    await raffleRef.update({
+      ...updateData,
+      // Si finalizationDate es una cadena vacía, la guardamos como null.
+      finalizationDate: updateData.finalizationDate === '' ? null : updateData.finalizationDate,
+    });
+
+    revalidatePath(`/raffle/${raffleId}`);
+    revalidatePath('/dashboard');
+    return { message: 'Rifa actualizada con éxito.', success: true };
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Error de base de datos: No se pudo actualizar la rifa.');
+  }
+}
+
+// --- RAFFLE FINALIZATION WITH WINNER ACTION --- //
+
+const FinalizeRaffleWithWinnerSchema = z.object({
+  raffleId: z.string().min(1, 'El ID de la rifa es obligatorio.'),
+  winnerSlotNumber: z.coerce.number().int().min(1).max(100, 'El número de casilla debe estar entre 1 y 100.'),
+  idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
+});
+
+export async function finalizeRaffleWithWinnerAction(formData: FormData): Promise<{ message: string; success: boolean }> {
+  const validatedFields = FinalizeRaffleWithWinnerSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!validatedFields.success) {
+    throw new Error('La validación de los campos falló.');
+  }
+
+  const { raffleId, winnerSlotNumber, idToken } = validatedFields.data;
+
+  let ownerId: string;
+  try {
+    const adminAuth = getAdminAuth();
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    ownerId = decodedToken.uid;
+  } catch (error) {
+    throw new Error('Error de autenticación: El token no es válido.');
+  }
+
+  const adminDb = getAdminDb();
+  const raffleRef = adminDb.collection('raffles').doc(raffleId);
+  const raffleDoc = await raffleRef.get();
+
+  if (!raffleDoc.exists) {
+    throw new Error('Rifa no encontrada.');
+  }
+
+  const raffle = raffleDoc.data();
+  if (!raffle) {
+    throw new Error('Los datos de la rifa no se encontraron.');
+  }
+  if (raffle.ownerId !== ownerId) {
+    throw new Error('No tienes permisos para finalizar esta rifa.');
+  }
+
+  if (raffle.status === 'finalized') {
+    throw new Error('Esta rifa ya ha sido finalizada.');
+  }
+
+  // Validación crítica: la fecha actual debe ser la fecha de finalización o posterior
+  if (raffle.finalizationDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalizar a mediodía para comparar solo fechas
+    const finalizationDate = new Date(raffle.finalizationDate);
+    finalizationDate.setHours(0, 0, 0, 0);
+
+    if (today < finalizationDate) {
+      throw new Error('La rifa solo puede ser finalizada a partir de su fecha de finalización programada.');
+    }
+  } else {
+    throw new Error('Esta rifa no tiene una fecha de finalización programada.');
+  }
+
+  try {
+    await raffleRef.update({
+      status: 'finalized',
+      winnerSlotNumber: winnerSlotNumber,
+      finalizedAt: new Date().toISOString(),
+    });
+
+    revalidatePath(`/raffle/${raffleId}`);
+    revalidatePath('/dashboard');
+    return { message: '¡Rifa finalizada y ganador declarado!', success: true };
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Error de base de datos: No se pudo finalizar la rafa.');
+  }
 }

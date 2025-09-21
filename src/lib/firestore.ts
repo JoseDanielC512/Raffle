@@ -32,7 +32,7 @@ export async function countActiveRafflesForUser(userId: string): Promise<number>
  * @param userId The UID of the user.
  * @returns A promise that resolves to an array of raffles with filledSlots count.
  */
-export async function getRafflesForUser(userId: string): Promise<(Raffle & { filledSlots: number })[]> {
+export async function getRafflesForUser(userId: string): Promise<(Raffle & { filledSlots: number; winnerName?: string })[]> {
   if (!userId) {
     return [];
   }

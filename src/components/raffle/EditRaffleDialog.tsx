@@ -1,14 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { doc, updateDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Save } from 'lucide-react';
+import { useActionState } from 'react';
+import { updateRaffleAction } from '@/app/actions';
 
-import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Dialog,
   DialogContent,
@@ -20,28 +18,21 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
-
-const EditRaffleSchema = z.object({
-  name: z.string().min(1, 'El nombre es obligatorio.'),
-  description: z.string().min(1, 'La descripción es obligatoria.'),
-});
-
-type EditRaffleFormValues = z.infer<typeof EditRaffleSchema>;
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
 
 interface EditRaffleDialogProps {
   raffleId: string;
   currentName: string;
   currentDescription: string;
+  currentFinalizationDate: string | null;
   children: React.ReactNode;
 }
 
@@ -49,55 +40,64 @@ export default function EditRaffleDialog({
   raffleId,
   currentName,
   currentDescription,
+  currentFinalizationDate,
   children,
 }: EditRaffleDialogProps) {
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const [idToken, setIdToken] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    currentFinalizationDate ? new Date(currentFinalizationDate) : null
+  );
+
   const { toast } = useToast();
 
-  const form = useForm<EditRaffleFormValues>({
-    resolver: zodResolver(EditRaffleSchema),
-    defaultValues: {
-      name: currentName,
-      description: currentDescription,
-    },
-  });
+  const handleUpdate = async (prevState: any, formData: FormData) => {
+    return await updateRaffleAction(formData);
+  };
+  
+  // El tipo del estado es el tipo de retorno de la acción.
+  // useActionState añadirá 'pending', 'error', etc.
+  type ActionReturnType = Awaited<ReturnType<typeof handleUpdate>>;
+  
+  const initialState: ActionReturnType = {
+    message: '',
+    success: false,
+  };
+  
+  const [updateState, updateDispatch] = useActionState<ActionReturnType, FormData>(handleUpdate, initialState);
 
-  const onSubmit = async (data: EditRaffleFormValues) => {
-    setIsLoading(true);
-    try {
-      const raffleRef = doc(db, 'raffles', raffleId);
-      await updateDoc(raffleRef, {
-        name: data.name,
-        description: data.description,
-      });
+  // Obtener el token de ID cuando el usuario cambia o el componente se monta
+  useEffect(() => {
+    if (user) {
+      user.getIdToken().then(setIdToken);
+    }
+  }, [user]);
 
+  // Manejar el resultado de la Server Action
+  useEffect(() => {
+    if (updateState.success && updateState.message) {
       toast({
         title: 'Rifa actualizada',
-        description: 'Los cambios se han guardado correctamente.',
+        description: updateState.message,
         className: 'bg-green-600 text-white border-green-700',
       });
       setOpen(false); // Cerrar el modal al guardar
-    } catch (error) {
+    } else if (!updateState.success && updateState.message) {
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar la rifa. Inténtalo de nuevo.',
+        description: updateState.message,
         variant: 'destructive',
         className: 'bg-red-600 text-white border-red-700',
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [updateState, toast]);
 
   // Resetear el formulario con los valores actuales cuando se abre el modal
   const handleOpenChange = (newOpenState: boolean) => {
     setOpen(newOpenState);
     if (newOpenState) {
-      form.reset({
-        name: currentName,
-        description: currentDescription,
-      });
+      setSelectedDate(currentFinalizationDate ? new Date(currentFinalizationDate) : null);
     }
   };
 
@@ -115,55 +115,71 @@ export default function EditRaffleDialog({
             automáticamente.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre de la Rifa</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre de la rifa" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+        <form action={updateDispatch} className="space-y-6">
+          <input type="hidden" name="raffleId" value={raffleId} />
+          <input type="hidden" name="idToken" value={idToken} />
+          <input type="hidden" name="finalizationDate" value={selectedDate ? selectedDate.toISOString() : ''} />
+          
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre de la Rifa</Label>
+            <Input id="name" name="name" placeholder="Nombre de la rafa" defaultValue={currentName} required />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description">Descripción</Label>
+            <Textarea id="description" name="description" placeholder="Describe tu rafa" className="resize-none min-h-[120px]" defaultValue={currentDescription} required />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Fecha de Finalización (Opcional)</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full pl-3 text-left font-normal',
+                    !selectedDate && 'text-muted-foreground'
+                  )}
+                >
+                  {selectedDate ? (
+                    format(selectedDate, 'PPP', { locale: es })
+                  ) : (
+                    <span>Seleccionar una fecha</span>
+                  )}
+                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate ?? undefined}
+                  onSelect={(date) => setSelectedDate(date ?? null)}
+                  disabled={(date) =>
+                    date < new Date(new Date().setHours(0, 0, 0, 0)) // Deshabilitar fechas pasadas
+                  }
+                  initialFocus
+                  locale={es}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <DialogFooter>
+            <Button type="submit" disabled={(updateState as any).pending}>
+              {(updateState as any).pending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar Cambios
+                </>
               )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe tu rifa"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
