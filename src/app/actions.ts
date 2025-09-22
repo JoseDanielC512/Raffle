@@ -38,17 +38,24 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
   if (!validatedFields.success) {
     return { message: 'La validación falló.', errors: validatedFields.error.flatten().fieldErrors };
   }
+  
   const { email, password, name } = validatedFields.data;
+  
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    
     // We use the admin SDK's set method here
     const adminDb = getAdminDb();
-    await adminDb.collection("users").doc(userCredential.user.uid).set({
-      uid: userCredential.user.uid,
-      name,
-      email,
-      createdAt: new Date().toISOString()
-    });
+    try {
+      await adminDb.collection("users").doc(userCredential.user.uid).set({
+        uid: userCredential.user.uid,
+        name,
+        email,
+        createdAt: new Date().toISOString()
+      });
+    } catch (firestoreError: any) {
+      throw firestoreError; // Re-throw to be caught by the outer catch
+    }
     
     return { 
       message: 'Registro exitoso', 

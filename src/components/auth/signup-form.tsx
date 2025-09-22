@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useRouter } from "next/navigation";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { signupAction, type AuthState } from '@/app/actions';
 import { useAuth } from '@/context/auth-context';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,13 +36,39 @@ export function SignupForm() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const initialState: AuthState = { message: null, errors: {} };
-  const [state, dispatch] = useActionState(signupAction, initialState);
+  const [state, dispatch, isPending] = useActionState(signupAction, initialState);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
-    if (state.success && user && !authLoading) {
+    if (state.success && !user && !authLoading && !isSigningIn) {
+      setIsSigningIn(true);
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          router.push('/dashboard');
+        })
+        .catch((error) => {
+          // Even if sign-in fails, redirect if user exists (might be already signed in)
+          if (auth.currentUser) {
+            router.push('/dashboard');
+          } else {
+            setIsSigningIn(false);
+          }
+        });
+    } else if (state.success && user && !authLoading) {
       router.push('/dashboard');
     }
-  }, [state.success, user, authLoading, router]);
+  }, [state, isPending, user, authLoading, router, email, password, isSigningIn]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    const formEmail = formData.get('email') as string;
+    const formPassword = formData.get('password') as string;
+    setEmail(formEmail);
+    setPassword(formPassword);
+    e.currentTarget.requestSubmit();
+  };
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -51,7 +79,7 @@ export function SignupForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={dispatch} className="grid gap-4">
+        <form action={dispatch} onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Nombre completo</Label>
             <Input id="name" name="name" placeholder="Max Robinson" required />

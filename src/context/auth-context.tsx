@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '@/lib/firebase';
 
 // Define the shape of the context
@@ -35,10 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setError(null);
     }, (error) => {
-      setError(error.message);
+      const firebaseError = error as FirebaseError;
+      setError(firebaseError.message);
       toast({
         title: "Error de Autenticación",
-        description: error.message,
+        description: firebaseError.message,
         variant: "destructive",
       });
       setLoading(false);
@@ -46,7 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+    };
   }, [toast]);
 
   const value = { user, loading, error, isLoggingOut, setIsLoggingOut };

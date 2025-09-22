@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Raffle, RaffleSlot } from "@/lib/definitions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 
 function DashboardSkeleton() {
   return (
@@ -243,12 +244,14 @@ export default function Dashboard() {
 
       {/* Mobile FAB */}
       {canCreateRaffle && !isLoading && (
-        <Button
+        <IconButton
           className="fixed bottom-6 right-6 md:hidden bg-primary hover:bg-primary/90 text-white rounded-full w-16 h-16 shadow-lg hover:shadow-xl transition-all duration-300 z-50 transform hover:scale-110"
           onClick={() => router.push('/raffle/create')}
-        >
-          <PlusCircle className="h-6 w-6" />
-        </Button>
+          icon={<PlusCircle className="h-6 w-6" />}
+          tooltip="Crear Nueva Rifa"
+          tooltipSide="left"
+          aria-label="Crear Nueva Rifa"
+        />
       )}
     </div>
   );

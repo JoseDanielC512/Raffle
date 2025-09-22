@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition, useState, useEffect } from 'react';
+import { useTransition } from 'react';
 import { loginAction, type AuthState } from '@/app/actions';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';

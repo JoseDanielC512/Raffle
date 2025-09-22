@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { doc, onSnapshot, collection, query } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Raffle, RaffleSlot } from '@/lib/definitions';
 import RaffleBoard from '@/components/raffle/raffle-board';
+import RaffleTermsCard from '@/components/raffle/RaffleTermsCard';
+import RaffleInfoCard from '@/components/raffle/RaffleInfoCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Crown } from 'lucide-react';
 
 // Skeleton component for initial loading
 function PublicRaffleSkeleton() {
@@ -48,7 +47,7 @@ export default function PublicRafflePage() {
       setLoading(false);
     });
 
-    const slotsQuery = query(collection(db, 'raffles', raffleId, 'slots'));
+    const slotsQuery = query(collection(db, 'raffles', raffleId, 'slots'), orderBy('slotNumber', 'asc'));
     const slotsUnsubscribe = onSnapshot(slotsQuery, (querySnapshot) => {
       const slotsData = querySnapshot.docs.map(doc => ({ ...doc.data() } as RaffleSlot));
       setSlots(slotsData);
@@ -83,43 +82,39 @@ export default function PublicRafflePage() {
   const winnerSlot = isFinalized ? slots.find(s => s.slotNumber === raffle.winnerSlotNumber) : undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 md:p-8 lg:p-12">
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-card/80 backdrop-blur-sm border-border/60 shadow-md transition-all duration-300">
-          <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4">
-            <div className="flex justify-between items-start">
-              <CardTitle className="text-xl md:text-2xl font-bold text-foreground transition-colors duration-200">
-                {raffle.name}
-              </CardTitle>
-              <Badge variant={isFinalized ? "destructive" : "secondary"} className="text-sm">
-                {isFinalized ? "Finalizada" : "Activa"}
-              </Badge>
-            </div>
-            <CardDescription className="pt-2 text-base">{raffle.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <RaffleBoard raffle={raffle} slots={slots} isOwner={false} />
-          </CardContent>
-          {isFinalized && (
-            <CardFooter className="bg-muted/30 rounded-b-lg border-t border-border/50 p-4">
-              <div className="w-full text-center">
-                <h3 className="font-semibold text-primary flex items-center justify-center gap-2 text-lg">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  ¡Rifa Finalizada!
-                </h3>
-                {winnerSlot ? (
-                  <p className="text-muted-foreground mt-1">
-                    El ganador es <span className="font-bold text-primary">{winnerSlot.participantName}</span> con la casilla número <span className="font-bold text-primary">{raffle.winnerSlotNumber}</span>.
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground mt-1">
-                    El ganador será anunciado pronto.
-                  </p>
-                )}
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      <div className="container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 pb-6 border-b border-border/50">
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">🎲</span>
               </div>
-            </CardFooter>
-          )}
-        </Card>
+              <div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-foreground">
+                  {raffle.name}
+                </h1>
+                <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+                  {raffle.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {/* Tablero Full-Width */}
+          <section className="w-full">
+            <RaffleBoard raffle={raffle} slots={slots} isOwner={false} />
+          </section>
+
+          {/* Panels en Grid Horizontal */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <RaffleTermsCard terms={raffle.terms} />
+            <RaffleInfoCard raffle={raffle} winnerName={winnerSlot?.participantName} />
+          </div>
+        </div>
       </div>
     </div>
   );

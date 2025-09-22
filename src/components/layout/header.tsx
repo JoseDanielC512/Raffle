@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
 import { auth } from '@/lib/firebase';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
@@ -67,7 +66,7 @@ export function Header() {
             <span className="hidden font-bold sm:inline-block lg:text-xl">Lucky 100 Raffle</span>
           </Link>
           
-          {/* Navegación desktop */}
+          {/* Navegación desktop 
           <nav className="hidden md:flex md:items-center md:gap-1">
             {navLinks.map((link) => (
               <Link
@@ -85,8 +84,8 @@ export function Header() {
               </Link>
             ))}
           </nav>
+          */}
         </div>
-
 
         {/* Usuario/autenticación */}
         <div className="flex items-center gap-2">

@@ -40,7 +40,9 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate }: Ra
               {raffle.name} - Progreso: {paidSlots + reservedSlots}/100
             </p>
           </div>
-          {/* Badges removed as per feedback - legend below provides the same info */}
+          <Badge variant={raffle.status === 'finalized' ? "destructive" : "secondary"} className="text-sm whitespace-nowrap">
+            {raffle.status === 'finalized' ? "Finalizada" : "Activa"}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
