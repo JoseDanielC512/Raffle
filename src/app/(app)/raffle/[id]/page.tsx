@@ -73,7 +73,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
       // Esto no debería ocurrir si el botón está visible, pero es una salvaguarda.
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Error de Rifa",
         description: "No se pudo generar el enlace, los datos de la rifa no están disponibles.",
       });
       return;
@@ -83,11 +83,12 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
       toast({
         title: "¡Enlace copiado!",
         description: "El enlace público de la rifa ha sido copiado al portapapeles.",
+        variant: "info",
       });
     }).catch((err) => {
       toast({
         variant: "destructive",
-        title: "Error al copiar",
+        title: "Error al Copiar Enlace",
         description: "No se pudo copiar el enlace al portapapeles.",
       });
     });
@@ -124,7 +125,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         setIsLiveConnected(false);
         toast({
           variant: "destructive",
-          title: "Error de conexión",
+          title: "Error de Conexión",
           description: "No se pudo conectar a la base de datos en tiempo real. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones que puedan bloquear la conexión.",
         });
         // Si hay error de permisos, redirigir al login
@@ -156,7 +157,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         setIsLiveConnected(false);
         toast({
           variant: "destructive",
-          title: "Error de conexión",
+          title: "Error de Conexión",
           description: "No se pudo conectar a la base de datos en tiempo real. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones que puedan bloquear la conexión.",
         });
         // Si hay error de permisos en el listener, redirigir al login

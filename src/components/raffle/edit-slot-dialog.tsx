@@ -64,7 +64,7 @@ export default function EditSlotDialog({ children, slot, raffleId, user, isOwner
         toast({
           title: "Casilla Actualizada",
           description: state.message,
-          className: "bg-green-600 text-white border-green-700",
+          variant: "success",
         });
         if (onSlotUpdate) {
           let finalParticipantName = participantName;
@@ -79,10 +79,9 @@ export default function EditSlotDialog({ children, slot, raffleId, user, isOwner
         setOpen(false);
       } else {
         toast({
-          title: "Error",
+          title: "Error al actualizar casilla",
           description: state.message,
           variant: "destructive",
-          className: "bg-red-600 text-white border-red-700",
         });
       }
     }

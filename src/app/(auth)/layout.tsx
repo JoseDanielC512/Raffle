@@ -14,7 +14,7 @@ export default function AuthLayout({
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, loading, router]);
 
@@ -38,7 +38,7 @@ export default function AuthLayout({
 
   // Solo mostrar las páginas de autenticación si el usuario NO está autenticado
   return (
-    <main className="flex items-center justify-center min-h-screen">
+    <main className="flex items-center justify-center h-full p-6">
       {children}
     </main>
   );

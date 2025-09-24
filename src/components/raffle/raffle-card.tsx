@@ -55,13 +55,6 @@ export default function RaffleCard({ raffle }: RaffleCardProps) {
           </div>
         )}
       </CardContent>
-      <CardFooter>
-        <Button asChild className="w-full">
-          <Link href={`/raffle/${raffle.id}`}>
-            Ver Rifa <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      </CardFooter>
     </Card>
   );
 }

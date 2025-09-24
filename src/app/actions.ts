@@ -16,7 +16,12 @@ import { countActiveRafflesForUserAdmin } from '@/lib/firestore-admin';
 const SignupSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
   email: z.string().email('Por favor, ingresa un correo electrónico válido.'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.'),
+  confirmPassword: z.string().min(8, 'La confirmación de contraseña es obligatoria.'),
+  terms: z.boolean().refine((val) => val === true, 'Debes aceptar los términos y condiciones.'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
 });
 
 const LoginSchema = z.object({
@@ -34,7 +39,17 @@ export type AuthState = {
 
 // This action uses the client SDK because it's initiated from the client before the user is fully logged in on the server.
 export async function signupAction(prevState: AuthState, formData: FormData): Promise<AuthState> {
-  const validatedFields = SignupSchema.safeParse(Object.fromEntries(formData.entries()));
+  // Convertir FormData a un objeto plano, usando una aserción de tipo para poder modificarlo
+  const rawFormData = Object.fromEntries(formData.entries()) as Record<string, any>;
+  
+  // Convertir explícitamente el campo 'terms' de string a booleano
+  if (rawFormData.terms === 'true') {
+    rawFormData.terms = true;
+  } else {
+    rawFormData.terms = false;
+  }
+
+  const validatedFields = SignupSchema.safeParse(rawFormData);
   if (!validatedFields.success) {
     return { message: 'La validación falló.', errors: validatedFields.error.flatten().fieldErrors };
   }
@@ -44,6 +59,11 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
+    const adminAuth = getAdminAuth();
+    await adminAuth.updateUser(userCredential.user.uid, {
+      displayName: name,
+    });
+
     // We use the admin SDK's set method here
     const adminDb = getAdminDb();
     try {

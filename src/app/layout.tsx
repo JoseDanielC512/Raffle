@@ -11,7 +11,7 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Lucky 100 Raffle",
+  title: "Lucky 100",
   description: "Create and manage 100-slot raffles with ease.",
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={ptSans.className}>
         <ClientWrapper>
-          <div className="flex flex-col min-h-screen">
+          <div className="grid grid-rows-[auto_1fr] min-h-screen">
             <Header />
             <main className="flex-1">
               {children}

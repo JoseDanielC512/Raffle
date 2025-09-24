@@ -86,15 +86,14 @@ export default function EditRaffleDialog({
       toast({
         title: 'Rifa actualizada',
         description: updateState.message,
-        className: 'bg-green-600 text-white border-green-700',
+        variant: 'success',
       });
       setOpen(false);
     } else if (!updateState.success && updateState.message) {
       toast({
-        title: 'Error',
+        title: 'Error al actualizar',
         description: updateState.message,
         variant: 'destructive',
-        className: 'bg-red-600 text-white border-red-700',
       });
     }
   }, [updateState, toast]);

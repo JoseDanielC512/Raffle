@@ -75,16 +75,6 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
           <span className="font-mono text-xs leading-tight drop-shadow-sm z-10 text-center w-full">
             {slot.slotNumber}
           </span>
-
-          {/* Nombre del participante */}
-          {slot.status === 'paid' && slot.participantName && (
-            <div className="hidden sm:flex items-center gap-1 mt-0.5 z-10">
-              <User className="w-2.5 h-2.5 opacity-80" />
-              <span className="text-[0.55rem] leading-tight text-center break-words w-full font-medium">
-                {slot.participantName}
-              </span>
-            </div>
-          )}
         </>
       )}
 
@@ -125,7 +115,6 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
         <TooltipContent side="top" className="bg-white/95 backdrop-blur-sm border-primary/20 shadow-lg">
           <div className="space-y-1">
             <p className="font-semibold text-primary">Casilla #{slot.slotNumber}</p>
-            <p className="text-sm">Participante: <span className="font-medium">{participantName}</span></p>
             <p className="text-sm">Estado: <span className="font-medium">{status}</span></p>
           </div>
         </TooltipContent>

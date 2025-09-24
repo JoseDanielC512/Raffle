@@ -1,99 +1,209 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import RaffleCard from "@/components/raffle/raffle-card";
+import RaffleBoard from "@/components/raffle/raffle-board";
+import { Raffle } from "@/lib/definitions";
+import { RaffleSlot as RaffleSlotType } from "@/lib/definitions";
+import { ArrowUpRight, Shield, Clock, Users } from "lucide-react";
 
+const mockRaffles: Raffle[] = [
+  {
+    id: '1',
+    name: 'Rifa de Bienes del Hogar',
+    description: 'Organiza tu rifa para electrodomésticos nuevos. 100 casillas disponibles.',
+    terms: 'Términos y condiciones de la rifa de bienes del hogar.',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    finalizedAt: null,
+    finalizationDate: null,
+    winnerSlotNumber: null,
+    ownerId: 'mock-owner',
+  },
+  {
+    id: '2',
+    name: 'Rifa de Viaje a la Playa',
+    description: '¡Gana un viaje soñado! Casillas con progresión rápida.',
+    terms: 'Términos y condiciones de la rifa de viaje.',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    finalizedAt: null,
+    finalizationDate: null,
+    winnerSlotNumber: null,
+    ownerId: 'mock-owner2',
+  },
+  {
+    id: '3',
+    name: 'Rifa de Electrónicos',
+    description: 'Rifa finalizada - ¡Felicidades al ganador!',
+    terms: 'Términos y condiciones de la rifa de electrónicos.',
+    status: 'finalized',
+    createdAt: new Date().toISOString(),
+    finalizedAt: new Date().toISOString(),
+    finalizationDate: null,
+    winnerSlotNumber: 42,
+    ownerId: 'mock-owner3',
+  },
+];
+
+const mockSlots: RaffleSlotType[] = Array.from({ length: 10 }, (_, i) => ({
+  slotNumber: i + 1,
+  status: i % 4 === 0 ? 'paid' : i % 4 === 1 ? 'reserved' : 'available',
+  participantName: i % 4 === 0 ? 'Usuario Ejemplo' : '',
+}));
+
+// Componente lógico: maneja redirect si está autenticado
 export default function Home() {
+  const { user, loading, isLoggingOut } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user && !isLoggingOut) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, isLoggingOut, router]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  }
+
+  // Don't render anything if user is authenticated, as the redirect will happen
+  if (user) {
+    return null;
+  }
+
   return (
-    <>
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-background to-muted/20">
-        <div className="container px-4 md:px-6">
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-primary/5 to-background/80 py-16 md:py-24 lg:py-32">
+        <div className="absolute inset-0 bg-[url('/api/placeholder/1200/800')] bg-cover bg-center opacity-5 animate-pulse"></div>
+        <div className="relative container px-4 md:px-6 max-w-6xl mx-auto">
           <div className="flex flex-col items-center justify-center space-y-8 text-center">
-            {/* Elementos geométricos decorativos */}
-            <div className="relative mb-8">
-              <div className="w-32 h-32 bg-primary rounded-full opacity-10 absolute -top-4 -left-4 animate-pulse"></div>
-              <div className="w-24 h-24 bg-accent rounded-full opacity-20 absolute -top-2 -right-2 animate-pulse delay-300"></div>
-              <div className="w-16 h-16 bg-primary/30 rounded-full opacity-40 relative z-10 animate-pulse delay-700"></div>
-            </div>
-
-            <div className="space-y-6 max-w-4xl">
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none font-headline text-foreground leading-tight">
-                Tu plataforma de rifas.<br />
-                <span className="text-accent">Simple, Segura y Transparente</span>
+            <div className="space-y-6">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none text-foreground leading-tight">
+                Crea, Gestiona y Participa<br className="hidden md:block" /> en Rifas Modernas y Seguras
               </h1>
-
               <p className="mx-auto max-w-[800px] text-lg md:text-xl text-muted-foreground leading-relaxed">
-                La plataforma #1 de rifas donde los usuarios dais su asamblea. Simple. Segura. Totalmente con FireBase.
+                Una plataforma transparente y segura construida con Firebase para organizar rifas comunitarias, con actualizaciones en tiempo real y un sistema de 100 casillas fácil de usar.
               </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <Link href="/register">Registrarse</Link>
-              </Button>
-              <Button variant="outline" asChild size="lg" className="border-primary text-primary hover:bg-primary/5 transition-all duration-300">
-                <Link href="/login">Ver Demo</Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button asChild size="lg" className="w-full sm:w-auto group">
+                  <Link href="/dashboard">
+                    <ArrowUpRight className="mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    Ir al Dashboard
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-card">
-        <div className="container px-4 md:px-6">
-          <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-            {/* Teaser Dashboard */}
-            <div className="group cursor-pointer rounded-lg border bg-background p-6 shadow-sm transition-all hover:shadow-md">
-              <h3 className="text-xl font-bold font-headline mb-4 text-gray-900">Dashboard del Organizador</h3>
-              <div className="space-y-3 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Rifas Activas:</span>
-                  <span className="font-semibold text-blue-600">2</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Casillas Vendidas:</span>
-                  <span className="font-semibold text-green-600">75 / 200</span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">Panel de control con métricas clave y listado de rifas.</p>
-              <Button variant="outline" size="sm" className="w-full">Ver Dashboard</Button>
-            </div>
+      {/* Featured Rifas */}
+      <section className="w-full py-16 bg-card/50">
+        <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Rifas Destacadas</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explora algunas de las rifas activas en nuestra plataforma. ¡Anímate a crear la tuya y únete a la comunidad!
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {mockRaffles.map((raffle) => (
+              <RaffleCard key={raffle.id} raffle={raffle} />
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Teaser Tablero */}
-            <div className="group cursor-pointer rounded-lg border bg-background p-6 shadow-sm transition-all hover:shadow-md">
-              <h3 className="text-xl font-bold font-headline mb-4 text-gray-900">Tablero de Rifas</h3>
-              <div className="grid grid-cols-5 gap-1 mb-4" style={{maxHeight: '120px', overflow: 'hidden'}}>
-                {/* Preview grid 5x5 sample */}
-                {Array.from({length: 25}).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-6 h-6 rounded-sm border ${
-                      i % 5 === 0 ? 'bg-green-500' :
-                      i % 3 === 0 ? 'bg-yellow-500' :
-                      i % 7 === 0 ? 'bg-blue-500' :
-                      'bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">Visualiza 100 casillas con colores intuitivos para estados.</p>
-              <Button variant="outline" size="sm" className="w-full">Explorar Tablero</Button>
-            </div>
+      {/* Mini Board Preview */}
+      <section className="w-full py-16 bg-background">
+        <div className="container px-4 md:px-6 max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">Así Funciona Nuestro Tablero</h2>
+            <p className="text-muted-foreground">
+              Gestiona fácilmente las 100 casillas con un sistema de colores intuitivo que te mantiene informado en tiempo real.
+            </p>
+          </div>
+          <div className="max-w-lg mx-auto">
+            <RaffleBoard
+              raffle={{
+                id: 'preview',
+                name: 'Rifa de Ejemplo',
+                description: 'Vista previa del tablero - 10 casillas de ejemplo',
+                terms: 'Términos de la rifa de ejemplo.',
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                finalizedAt: null,
+                finalizationDate: null,
+                winnerSlotNumber: null,
+                ownerId: 'preview',
+              }}
+              slots={mockSlots}
+              isOwner={false}
+              onSlotUpdate={() => {}}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="w-full py-16 bg-muted/30">
+        <div className="container px-4 md:px-6 max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">¿Por Qué Elegir Lucky 100 Raffle?</h2>
+            <p className="text-muted-foreground">
+              Te ofrecemos las mejores herramientas para una experiencia de rifas impecable.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardHeader>
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-lg">Rifas Seguras y Transparentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>Nuestra plataforma está protegida con Firebase y reglas de seguridad robustas para garantizar transacciones seguras y transparentes.</CardDescription>
+              </CardContent>
+            </Card>
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardHeader>
+                <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
+                  <Clock className="h-6 w-6 text-secondary" />
+                </div>
+                <CardTitle className="text-lg">Actualizaciones en Tiempo Real</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>Gracias a los listeners de Firestore, el estado de las casillas se actualiza instantáneamente para todos los participantes.</CardDescription>
+              </CardContent>
+            </Card>
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardHeader>
+                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                  <Users className="h-6 w-6 text-accent" />
+                </div>
+                <CardTitle className="text-lg">Gestión Inteligente para Organizadores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>Establecemos un límite de 2 rifas activas por organizador y ofrecemos notificaciones y validaciones para una gestión sin complicaciones.</CardDescription>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       <footer className="w-full py-8 border-t bg-muted/50">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-sm text-muted-foreground">&copy; 2025 Rifas Seguras. Todos los derechos reservados.</p>
-            <div className="flex space-x-4">
-              <Link href="/login" className="text-sm text-primary hover:underline">Iniciar Sesión</Link>
-              <Link href="/register" className="text-sm text-primary hover:underline">Registrarse</Link>
-            </div>
-          </div>
+        <div className="container px-4 md:px-6 mx-auto">
+          <p className="text-center text-sm text-muted-foreground">&copy; Made with &#10084; by José Castellanos</p>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

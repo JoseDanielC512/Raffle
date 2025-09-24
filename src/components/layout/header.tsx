@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { CircleUser, Package2, Loader2 } from 'lucide-react';
+import { CircleUser, Loader2, List, User, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,134 +14,119 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
-import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 export function Header() {
-  const { user, loading, isLoggingOut, setIsLoggingOut } = useAuth();
+  const [isClient, setIsClient] = useState(false);
+  const { user, loading, isLoggingOut, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handleLogout = async () => {
-    setIsLoggingOut(true);
     try {
-      await auth.signOut();
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente."
-      });
+      await logout();
+      // After logout, redirect to home page
       router.push('/');
     } catch (error) {
+      console.error('Logout error:', error);
       toast({
-        title: "Error",
-        description: 'Error al cerrar sesión. Intenta de nuevo.',
+        title: "Error al cerrar sesión",
+        description: 'Ocurrió un problema al intentar cerrar la sesión. Por favor, intenta de nuevo.',
         variant: "destructive"
       });
-      setIsLoggingOut(false);
+      // Ensure isLoggingOut state is reset in case of error
+      // This will be handled by the auth context now
     }
   };
 
-  const isActiveLink = (path: string) => {
-    return pathname === path;
-  };
-
-  const navLinks = [
-    { href: '/', label: 'Inicio', icon: Package2 },
-    ...(user ? [{ href: '/dashboard', label: 'Dashboard', icon: undefined }] : []),
-  ];
-
-  // Si el usuario está autenticado, no mostrar enlaces de login/signup en el header
-  // ya que serán redirigidos automáticamente por los layouts
-  const showAuthLinks = !user && !loading;
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sm:px-6 lg:px-8">
+      <div className="flex h-16 items-center justify-between">
         {/* Logo y navegación desktop */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Package2 className="h-5 w-5" />
-            </div>
-            <span className="hidden font-bold sm:inline-block lg:text-xl">Lucky 100 Raffle</span>
+          <Link href="/" className="flex items-center transition-transform hover:scale-105">
+            <Image 
+              src="/static/logo.png" 
+              alt="Lucky 100 Logo" 
+              width={80} 
+              height={80} 
+              className="w-auto h-auto max-h-[60px]"
+            />
           </Link>
-          
-          {/* Navegación desktop 
-          <nav className="hidden md:flex md:items-center md:gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground",
-                  isActiveLink(link.href) 
-                    ? "bg-accent text-accent-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label={`Navegar a ${link.label}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          */}
         </div>
 
         {/* Usuario/autenticación */}
         <div className="flex items-center gap-2">
-          {loading && (
-            <div className="h-9 w-9 flex items-center justify-center">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          )}
-          {!loading && user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="relative h-9 w-9 rounded-full flex items-center justify-center">
-                  <CircleUser className="h-5 w-5" />
-                  <span className="sr-only">Menú de usuario</span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => { /* TODO: Navigate to settings */ }}
-                  className="cursor-pointer"
-                >
-                  Configuración
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  {isLoggingOut ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Cerrando sesión...
-                    </>
-                  ) : (
-                    'Cerrar Sesión'
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          {showAuthLinks && (
-            <div className="flex items-center gap-2">
-              <a href="/login" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Iniciar Sesión</a>
-              <a href="/signup" className="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">Regístrate</a>
-            </div>
+          {isClient ? (
+            <>
+              {loading && (
+                <div className="h-9 w-9 flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {!loading && user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <CircleUser className="h-5 w-5" />
+                      <span className="sr-only">Menú de usuario</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-72" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/my-raffles')} className="cursor-pointer">
+                      <List className="mr-2 h-4 w-4" />
+                      <span>Mis Rifas</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Ajustes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                    >
+                      {isLoggingOut ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Cerrando sesión...
+                        </>
+                      ) : (
+                        'Cerrar Sesión'
+                      )}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {!loading && !user && (
+                <div className="flex items-center gap-2">
+                  <a href="/login" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Iniciar Sesión</a>
+                  <a href="/signup" className="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">Regístrate</a>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="h-9 w-9" /> // Placeholder
           )}
         </div>
       </div>

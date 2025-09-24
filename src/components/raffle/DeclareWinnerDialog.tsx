@@ -68,18 +68,17 @@ export default function DeclareWinnerDialog({
   useEffect(() => {
     if (finalizeState.success && finalizeState.message) {
       toast({
-        title: '¡Finalizado!',
+        title: '¡Rifa Finalizada!',
         description: finalizeState.message,
-        className: 'bg-green-600 text-white border-green-700',
+        variant: 'success',
       });
       onOpenChange(false);
       onSuccess();
     } else if (!finalizeState.success && finalizeState.message) {
       toast({
-        title: 'Error al finalizar',
+        title: 'Error al finalizar rifa',
         description: finalizeState.message,
         variant: 'destructive',
-        className: 'bg-red-600 text-white border-red-700',
       });
     }
   }, [finalizeState, toast, onOpenChange, onSuccess]);

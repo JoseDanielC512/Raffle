@@ -14,8 +14,9 @@ import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 function GenerationSubmitButton() {
   const { pending } = useFormStatus();
@@ -70,40 +71,50 @@ export function CreateRaffleForm() {
   const isFormDisabled = authLoading || !user;
 
   return (
-    <div className="grid gap-8 md:grid-cols-3">
+    <div className="grid gap-8 md:grid-cols-1">
       <div className="md:col-span-1">
-        <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
-          <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4">
-            <CardTitle className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base">Generador de Contenido con IA</CardTitle>
-            <CardDescription>Describe el premio y la IA creará los textos por ti.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <form action={generateDispatch} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="prompt">¿Qué vas a rifar?</Label>
-                <Textarea
-                  id="prompt"
-                  name="prompt"
-                  placeholder="Ej: Una consola PS5 nueva con dos controles y el juego Spider-Man 2."
-                  className="min-h-[100px]"
-                  disabled={isFormDisabled}
-                />
-                {generateState.errors?.prompt && (
-                  <p className="text-sm text-red-500">{generateState.errors.prompt.join(', ')}</p>
-                )}
-              </div>
-              <GenerationSubmitButton />
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="md:col-span-2">
         <form action={createRaffleAction} className="space-y-6">
           <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
-            <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4">
-              <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">Detalles de la Rifa</CardTitle>
-              <CardDescription>Completa la información para tu nueva rifa.</CardDescription>
+            <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">Detalles de la Rifa</CardTitle>
+                <CardDescription>Completa la información para tu nueva rifa.</CardDescription>
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Generador de Contenido con IA</DialogTitle>
+                  </DialogHeader>
+                  <Card className="bg-card/80 backdrop-blur-sm border-border/60">
+                    <CardHeader>
+                      <CardDescription>Describe el premio y la IA creará los textos por ti.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-4">
+                      <form action={generateDispatch} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="prompt">¿Qué vas a rifar?</Label>
+                          <Textarea
+                            id="prompt"
+                            name="prompt"
+                            placeholder="Ej: Una consola PS5 nueva con dos controles y el juego Spider-Man 2."
+                            className="min-h-[100px]"
+                            disabled={isFormDisabled}
+                          />
+                          {generateState.errors?.prompt && (
+                            <p className="text-sm text-red-500">{generateState.errors.prompt.join(', ')}</p>
+                          )}
+                        </div>
+                        <GenerationSubmitButton />
+                      </form>
+                    </CardContent>
+                  </Card>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
               {isFormDisabled && (

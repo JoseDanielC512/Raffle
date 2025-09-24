@@ -9,38 +9,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // No redirigir mientras el proceso de logout está en curso.
-    if (isLoggingOut) {
-      return;
-    }
-
-    // Redirigir solo si la carga ha terminado y no hay usuario.
-    if (!loading && !user) {
+    // If user is not authenticated and not loading, redirect to login
+    if (!loading && !user && !isLoggingOut) {
       router.replace('/login');
     }
   }, [user, loading, router, isLoggingOut]);
 
-  // Mostrar loading mientras se verifica la autenticación o se cierra sesión.
-  if (loading || isLoggingOut) {
+  // Show loading state when loading
+  if (loading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">{isLoggingOut ? 'Cerrando sesión...' : 'Cargando...'}</p>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
   }
 
-  // Si hay un usuario, mostrar el contenido de la aplicación.
-  // Si no hay usuario pero aún está cargando, el bloque anterior se encarga.
-  // Si no hay usuario y no está cargando, el useEffect ya habrá iniciado la redirección.
+  // Only render the layout if user is authenticated
   if (user) {
     return (
-      <div className="p-4 md:gap-8 md:p-8">{children}</div>
+      <div className="flex flex-col min-h-screen w-full">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          {children}
+        </main>
+      </div>
     );
   }
 
-  // Mientras se redirige, no renderizar nada.
+  // If user is not authenticated and not loading, return null to let the redirect happen
   return null;
 }
