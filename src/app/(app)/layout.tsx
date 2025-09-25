@@ -1,22 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
+import { Header } from "@/components/layout/header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, isLoggingOut } = useAuth();
-  const router = useRouter();
+  const { authStatus, loading } = useAuth();
 
-  useEffect(() => {
-    // If user is not authenticated and not loading, redirect to login
-    if (!loading && !user && !isLoggingOut) {
-      router.replace('/login');
-    }
-  }, [user, loading, router, isLoggingOut]);
-
-  // Show loading state when loading
-  if (loading) {
+  // Show a loading spinner while checking authentication status
+  if (loading || authStatus === 'checking') {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -27,10 +18,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Only render the layout if user is authenticated
-  if (user) {
+  // If the user is authenticated, render the protected layout with its children.
+  // The Header is part of this protected layout.
+  if (authStatus === 'authenticated') {
     return (
       <div className="flex flex-col min-h-screen w-full">
+        {/* The Header should be part of the authenticated layout */}
+        <Header />
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
           {children}
         </main>
@@ -38,6 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If user is not authenticated and not loading, return null to let the redirect happen
+  // If the user is not authenticated, render nothing.
+  // The AuthNavigationHandler will manage the redirection to the login page.
   return null;
 }

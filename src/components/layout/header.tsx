@@ -29,19 +29,14 @@ export function Header() {
   }, []);
 
   const handleLogout = async () => {
+    // The navigation logic is now handled by the AuthNavigationHandler.
+    // This function is now only responsible for initiating the logout process.
     try {
       await logout();
-      // After logout, redirect to home page
-      router.push('/');
     } catch (error) {
+      // The auth context will handle resetting the isLoggingOut state on error,
+      // but we can still log the error here.
       console.error('Logout error:', error);
-      toast({
-        title: "Error al cerrar sesión",
-        description: 'Ocurrió un problema al intentar cerrar la sesión. Por favor, intenta de nuevo.',
-        variant: "destructive"
-      });
-      // Ensure isLoggingOut state is reset in case of error
-      // This will be handled by the auth context now
     }
   };
 

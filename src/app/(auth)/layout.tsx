@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 
 export default function AuthLayout({
@@ -9,17 +7,11 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { authStatus, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, router]);
-
-  // Mostrar loading mientras se verifica la autenticación
-  if (loading) {
+  // Show a loading spinner while auth status is being determined.
+  // The AuthNavigationHandler will redirect away if the user is already authenticated.
+  if (loading || authStatus === 'checking' || authStatus === 'authenticated') {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -30,15 +22,9 @@ export default function AuthLayout({
     );
   }
 
-  // Si el usuario está autenticado, no mostrar las páginas de auth
-  // El useEffect se encargará de redirigir automáticamente
-  if (user) {
-    return null;
-  }
-
-  // Solo mostrar las páginas de autenticación si el usuario NO está autenticado
+  // Render the login/signup forms only if the user is unauthenticated.
   return (
-    <main className="flex items-center justify-center h-full p-6">
+    <main className="flex items-center justify-center min-h-screen p-6">
       {children}
     </main>
   );

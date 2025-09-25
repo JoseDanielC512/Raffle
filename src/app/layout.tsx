@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
 import ClientWrapper from "@/components/layout/client-wrapper";
-import { Header } from "@/components/layout/header";
 
 const ptSans = PT_Sans({ 
   subsets: ["latin"],
@@ -24,12 +23,11 @@ export default function RootLayout({
     <html lang="es">
       <body className={ptSans.className}>
         <ClientWrapper>
-          <div className="grid grid-rows-[auto_1fr] min-h-screen">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-          </div>
+          {/* The Header has been removed from the root layout. */}
+          {/* It is now part of the protected AppLayout to ensure it only shows for authenticated users. */}
+          <main className="flex-1">
+            {children}
+          </main>
         </ClientWrapper>
       </body>
     </html>

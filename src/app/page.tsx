@@ -59,22 +59,19 @@ const mockSlots: RaffleSlotType[] = Array.from({ length: 10 }, (_, i) => ({
 
 // Componente lógico: maneja redirect si está autenticado
 export default function Home() {
-  const { user, loading, isLoggingOut } = useAuth();
-  const router = useRouter();
+  const { authStatus, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && user && !isLoggingOut) {
-      router.replace('/dashboard');
-    }
-  }, [user, loading, isLoggingOut, router]);
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
-  }
-
-  // Don't render anything if user is authenticated, as the redirect will happen
-  if (user) {
-    return null;
+  // Show a loading screen while auth state is being determined.
+  // The AuthNavigationHandler will redirect away from this page if the user is authenticated.
+  if (loading || authStatus === 'checking' || authStatus === 'authenticated') {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
