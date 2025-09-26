@@ -1,4 +1,4 @@
-import { Crown, User } from "lucide-react";
+import { Crown } from "lucide-react";
 import { cn, triggerSlotConfetti } from "@/lib/utils";
 import type { RaffleSlot } from "@/lib/definitions";
 import EditSlotDialog from "./edit-slot-dialog";
@@ -101,7 +101,6 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
     paid: "Pagado",
   };
 
-  const participantName = slot.participantName || "Vacío";
   const status = statusMap[slot.status];
 
   return (

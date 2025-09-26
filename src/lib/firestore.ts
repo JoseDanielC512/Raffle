@@ -1,6 +1,6 @@
 'use server';
 
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { getAdminDb } from './firebase-admin';
 import type { Raffle, RaffleSlot } from './definitions';
@@ -22,7 +22,7 @@ export async function countActiveRafflesForUser(userId: string): Promise<number>
     const querySnapshot = await q.get();
 
     return querySnapshot.size;
-  } catch (error) {
+  } catch {
     return 0; // In case of error, assume 0 to allow creation or show 0 on UI
   }
 }
@@ -68,7 +68,7 @@ export async function getRafflesForUser(userId: string): Promise<(Raffle & { fil
             ...raffleData,
             filledSlots,
           };
-        } catch (slotsError) {
+        } catch {
           // Return raffle with 0 filled slots if slots query fails
           return {
             id: raffleId,
@@ -80,7 +80,7 @@ export async function getRafflesForUser(userId: string): Promise<(Raffle & { fil
     );
 
     return rafflesWithSlots;
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -100,7 +100,7 @@ export async function getRaffleById(raffleId: string): Promise<Raffle | null> {
       return { id: docSnap.id, ...docSnap.data() } as Raffle;
     }
     return null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -121,7 +121,7 @@ export async function getSlotsForRaffle(raffleId: string): Promise<RaffleSlot[]>
     slots.sort((a, b) => a.slotNumber - b.slotNumber);
 
     return slots;
-  } catch (error) {
+  } catch {
     return [];
   }
 }

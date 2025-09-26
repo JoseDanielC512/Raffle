@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { PlusCircle, DollarSign, Ticket, Trophy, ListChecks } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";

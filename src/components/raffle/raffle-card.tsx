@@ -1,17 +1,14 @@
-import Link from "next/link";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { Raffle } from "@/lib/definitions";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Crown } from "lucide-react";
+import { Crown } from "lucide-react";
 
 type RaffleCardProps = {
   raffle: Raffle & { filledSlots?: number; winnerName?: string };

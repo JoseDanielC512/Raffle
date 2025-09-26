@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from "@/context/auth-context";
-import { Header } from "@/components/layout/header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { authStatus, loading } = useAuth();
@@ -19,13 +18,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   // If the user is authenticated, render the protected layout with its children.
-  // The Header is part of this protected layout.
+  // The Header is now handled by the universal header in the root layout.
   if (authStatus === 'authenticated') {
     return (
-      <div className="flex flex-col min-h-screen w-full">
-        {/* The Header should be part of the authenticated layout */}
-        <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+      <div className="flex flex-col w-full h-full">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
           {children}
         </main>
       </div>

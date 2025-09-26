@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { CircleUser, Loader2, List, User, Settings } from 'lucide-react';
 import {
   DropdownMenu,
@@ -14,36 +14,44 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
+import { useUnderConstructionContext } from '@/context/under-construction-context';
 
 export function Header() {
   const [isClient, setIsClient] = useState(false);
-  const { user, loading, isLoggingOut, logout } = useAuth();
+  const { user, loading, isLoggingOut, logout, authStatus } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
+  const { showUnderConstructionDialog } = useUnderConstructionContext();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const handleLogout = async () => {
-    // The navigation logic is now handled by the AuthNavigationHandler.
-    // This function is now only responsible for initiating the logout process.
+    logger.info('Header', 'logout clicked', { 
+      pathname, 
+      hasUser: !!user,
+      userEmail: user?.email,
+      authStatus 
+    });
+    
     try {
       await logout();
+      logger.info('Header', 'logout function completed successfully');
     } catch (error) {
-      // The auth context will handle resetting the isLoggingOut state on error,
-      // but we can still log the error here.
+      logger.error('Header', 'logout function failed', error);
       console.error('Logout error:', error);
     }
   };
+  
+  // Hide header on auth pages
+  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sm:px-6 lg:px-8 ${isAuthPage ? 'hidden' : ''}`}>
       <div className="flex h-16 items-center justify-between">
-        {/* Logo y navegación desktop */}
+        {/* Logo */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center transition-transform hover:scale-105">
             <Image 
@@ -56,7 +64,7 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Usuario/autenticación */}
+        {/* Navigation content based on page type and auth status */}
         <div className="flex items-center gap-2">
           {isClient ? (
             <>
@@ -83,15 +91,35 @@ export function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    {/* Enlace original comentado - Mis Rifas
                     <DropdownMenuItem onClick={() => router.push('/my-raffles')} className="cursor-pointer">
                       <List className="mr-2 h-4 w-4" />
                       <span>Mis Rifas</span>
+                    </DropdownMenuItem> */}
+                    
+                    <DropdownMenuItem onClick={() => showUnderConstructionDialog('Mis Rifas')} className="cursor-pointer">
+                      <List className="mr-2 h-4 w-4" />
+                      <span>Mis Rifas</span>
                     </DropdownMenuItem>
+                    
+                    {/* Enlace original comentado - Perfil
                     <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Perfil</span>
+                    </DropdownMenuItem> */}
+                    
+                    <DropdownMenuItem onClick={() => showUnderConstructionDialog('Perfil de Usuario')} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
                     </DropdownMenuItem>
+                    
+                    {/* Enlace original comentado - Ajustes
                     <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Ajustes</span>
+                    </DropdownMenuItem> */}
+                    
+                    <DropdownMenuItem onClick={() => showUnderConstructionDialog('Ajustes y Configuración')} className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Ajustes</span>
                     </DropdownMenuItem>

@@ -2,46 +2,70 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Link, Wifi, WifiOff, Crown } from 'lucide-react';
+import { ArrowLeft, Pencil, Link, WifiOff } from 'lucide-react';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
+import { motion } from "framer-motion";
 
 import { db } from '@/lib/firebase';
 import type { Raffle, RaffleSlot } from '@/lib/definitions';
 import RaffleBoard from '@/components/raffle/raffle-board';
-import RaffleTermsCard from '@/components/raffle/RaffleTermsCard';
-import RaffleInfoCard from '@/components/raffle/RaffleInfoCard';
+import RaffleInfoDialog from '@/components/raffle/RaffleInfoDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
 import EditRaffleDialog from '@/components/raffle/EditRaffleDialog';
 import FinalizeRaffleButton from '@/components/raffle/FinalizeRaffleButton';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { IconButton } from '@/components/ui/icon-button';
 
 function RafflePageSkeleton() {
   return (
-    <div className="space-y-8">
-      {/* Board Skeleton */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-6 w-20" />
+    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white">
+      {/* Animated CSS Background - Same as public view */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNMTIgMTJ2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
+      </div>
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
+        {/* Header Skeleton */}
+        <div className="flex flex-row flex-wrap items-center gap-4 pb-6 border-b border-border/50">
+          <div className="flex items-center gap-3 flex-grow min-w-0">
+            <Skeleton className="w-12 h-12 rounded-xl flex-shrink-0" />
+            <div className="space-y-3 flex-1 min-w-0">
+              <Skeleton className="h-10 w-3/4 rounded" />
+              <Skeleton className="h-6 w-full rounded" />
+            </div>
+          </div>
         </div>
-        <Skeleton className="h-[600px] w-full rounded-lg" />
+
+        <div className="space-y-8">
+          {/* Board Skeleton */}
+          <section className="w-full">
+            <div className="relative">
+              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl blur-xl"></div>
+              <div className="bg-gradient-to-br from-background to-muted/10 backdrop-blur-lg border-border/20 shadow-2xl rounded-2xl overflow-hidden p-6 md:p-8">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-10 w-48 rounded" />
+                    <Skeleton className="h-8 w-24 rounded-full" />
+                  </div>
+                  <div className="grid grid-cols-10 gap-2 md:gap-3 max-w-3xl mx-auto">
+                    {Array.from({ length: 100 }).map((_, i) => (
+                      <Skeleton key={i} className="aspect-square rounded-lg" />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-4 justify-center">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="h-8 w-24 rounded-full" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
-      {/* Cards Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Skeleton className="h-[200px] w-full rounded-lg" />
-        <Skeleton className="h-[150px] w-full rounded-lg" />
-      </div>
-      {/* Legend Skeleton */}
-      <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-8 w-24 rounded-full" />
-        ))}
-      </div>
-      <Skeleton className="h-4 w-32" />
     </div>
   );
 }
@@ -51,12 +75,11 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const [slots, setSlots] = useState<RaffleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(true);
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const resolvedParams = use(params);
   const { toast } = useToast();
-
-  const paidSlots = slots.filter((slot) => slot.status === 'paid').length;
 
   const winnerName = raffle?.finalizedAt && raffle.winnerSlotNumber ? slots.find(slot => slot.slotNumber === raffle.winnerSlotNumber)?.participantName || 'No asignado' : null;
 
@@ -85,7 +108,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         description: "El enlace público de la rifa ha sido copiado al portapapeles.",
         variant: "info",
       });
-    }).catch((err) => {
+    }).catch(() => {
       toast({
         variant: "destructive",
         title: "Error al Copiar Enlace",
@@ -136,7 +159,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
     );
 
     return () => unsubscribe(); // Cleanup listener on unmount
-  }, [resolvedParams.id, user, authLoading, router, loading]);
+  }, [resolvedParams.id, user, authLoading, router, loading, toast]);
 
   // Solo configurar el listener de slots cuando la autenticación esté completa
   useEffect(() => {
@@ -168,7 +191,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
     );
 
     return () => unsubscribe(); // Cleanup listener on unmount
-  }, [resolvedParams.id, user, authLoading, router]);
+  }, [resolvedParams.id, user, authLoading, router, toast]);
 
   // Mostrar loading mientras se verifica la autenticación
   if (authLoading) {
@@ -198,8 +221,14 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const isOwner = user?.uid === raffle.ownerId;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-8">
+    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white">
+      {/* Animated CSS Background - Same as public view */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNMTIgMTJ2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
+      </div>
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
         {/* Indicador de Conexión */}
         {!isLiveConnected && (
           <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
@@ -211,8 +240,13 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
         )}
 
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 pb-6 border-b border-border/50">
-          <div className="flex items-start gap-3 flex-1">
+        <motion.div 
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pb-8 border-b border-white/20"
+        >
+          <div className="flex items-center gap-6 flex-wrap">
             {/* Back Button */}
             <IconButton
               onClick={() => router.push('/dashboard')}
@@ -220,32 +254,61 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
               tooltip="Volver al Dashboard"
               tooltipSide="bottom"
               aria-label="Volver al dashboard"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
             />
 
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-primary-foreground font-bold text-lg">🎲</span>
-            </div>
-            <div className="space-y-3 flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-headline text-foreground truncate">
+            {/* Animated Icon */}
+            <motion.div 
+              className="w-20 h-20 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/50 flex-shrink-0"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              whileHover={{ scale: 1.1, rotate: 15, transition: { duration: 0.3 } }}
+            >
+              <motion.span 
+                className="text-white text-3xl"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                🎲
+              </motion.span>
+            </motion.div>
+            
+            <div className="space-y-2 flex-1 min-w-0">
+              <motion.h1 
+                className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-white to-pink-300 drop-shadow-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
                 {raffle.name}
-              </h1>
-              <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+              </motion.h1>
+              <motion.p 
+                className="text-lg sm:text-xl text-cyan-100 leading-relaxed font-light"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+              >
                 {raffle.description}
-              </p>
+              </motion.p>
             </div>
           </div>
 
           {/* Action Buttons Group - Only visible to owner */}
           {isOwner && (
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <motion.div 
+              className="flex items-center gap-3 flex-shrink-0"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
               {/* Copy Link Button */}
               <IconButton
                 onClick={handleCopyPublicUrl}
-                icon={<Link className="h-4 w-4" />}
+                icon={<Link className="h-5 w-5" />}
                 tooltip="Copiar enlace público"
-                variant="accent"
                 tooltipSide="bottom"
                 aria-label="Copiar enlace público"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
               />
 
               {/* Edit Button - Only visible if raffle is not finalized */}
@@ -261,30 +324,42 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                     tooltip="Editar rifa"
                     tooltipSide="bottom"
                     aria-label="Editar rifa"
+                    className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
                   />
                 </EditRaffleDialog>
               )}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Tablero Full-Width */}
           <section className="w-full">
-            <RaffleBoard raffle={raffle} slots={slots} isOwner={isOwner} onSlotUpdate={handleSlotUpdate} />
+            <RaffleBoard 
+              raffle={raffle} 
+              slots={slots} 
+              isOwner={isOwner} 
+              onSlotUpdate={handleSlotUpdate} 
+              onInfoClick={() => setIsInfoDialogOpen(true)}
+            />
           </section>
 
-          {/* Panels en Grid Horizontal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RaffleTermsCard terms={raffle.terms} />
-            <RaffleInfoCard raffle={raffle} winnerName={winnerName || undefined} />
-            {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
-            {isOwner && (
-              <div className="lg:col-span-2">
-                <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
-              </div>
-            )}
-          </div>
+          {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
+          {isOwner && (
+            <div className="w-full">
+              <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
+            </div>
+          )}
+
+          {/* Diálogo de Información de la Rifa */}
+          <RaffleInfoDialog
+            open={isInfoDialogOpen}
+            onOpenChange={setIsInfoDialogOpen}
+            terms={raffle.terms}
+            winnerName={winnerName || undefined}
+            winnerSlotNumber={raffle.winnerSlotNumber || undefined}
+            isFinalized={!!raffle.finalizedAt}
+          />
         </div>
       </div>
     </div>

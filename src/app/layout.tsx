@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
 import ClientWrapper from "@/components/layout/client-wrapper";
+import { Header } from "@/components/layout/header";
+import { LogoutCoordinationProvider } from "@/context/logout-coordination-context";
 
 const ptSans = PT_Sans({ 
   subsets: ["latin"],
@@ -22,13 +24,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={ptSans.className}>
-        <ClientWrapper>
-          {/* The Header has been removed from the root layout. */}
-          {/* It is now part of the protected AppLayout to ensure it only shows for authenticated users. */}
-          <main className="flex-1">
-            {children}
-          </main>
-        </ClientWrapper>
+        <LogoutCoordinationProvider>
+          <ClientWrapper className="grid grid-rows-[auto_1fr] h-screen">
+            {/* Header - hidden on auth pages */}
+            <Header />
+            <main className="overflow-auto">
+              {children}
+            </main>
+          </ClientWrapper>
+        </LogoutCoordinationProvider>
       </body>
     </html>
   );

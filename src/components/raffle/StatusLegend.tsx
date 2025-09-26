@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Circle, Clock, CheckCircle, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 

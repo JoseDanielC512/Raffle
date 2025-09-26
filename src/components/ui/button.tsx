@@ -52,7 +52,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => 
     return <button ref={ref} className={baseClasses} />;
   }
   const { className, variant = "default", size = "default", asChild = false, loading = false, children, ...restProps } = props;
-  const Comp = asChild ? Slot : "button";
   const isDisabled = restProps.disabled || loading;
 
   if (asChild) {

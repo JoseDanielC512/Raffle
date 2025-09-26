@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useForm, FormProvider, FieldErrors } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -50,6 +51,10 @@ export default function LoginPage() {
     setIsFormSubmitting(true);
     try {
       const { email, password } = data;
+      
+      const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
+
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: '¡Bienvenido de Nuevo!',
@@ -57,12 +62,17 @@ export default function LoginPage() {
         variant: 'success',
       });
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let description = 'Ocurrió un error inesperado. Por favor, inténtalo más tarde.';
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'auth/wrong-password') {
+          description = 'Contraseña incorrecta. Por favor, inténtalo de nuevo.';
+        }
+      }
       toast({
         title: 'Error de Autenticación',
-        description: error.code === 'auth/wrong-password'
-          ? 'Contraseña incorrecta. Por favor, inténtalo de nuevo.'
-          : 'Ocurrió un error inesperado. Por favor, inténtalo más tarde.',
+        description,
         variant: 'destructive',
       });
       setError('password', { message: 'Credenciales inválidas' });
@@ -106,7 +116,7 @@ export default function LoginPage() {
             
             <div className="flex flex-col space-y-2 pt-2">
               <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
+                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(Boolean(checked))} />
                 <Label htmlFor="remember" className="text-sm">Recuérdame</Label>
               </div>
               <Link href="/forgot-password" className="text-sm underline text-primary">¿Olvidaste tu contraseña?</Link>

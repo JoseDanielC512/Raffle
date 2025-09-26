@@ -20,12 +20,12 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
           
           <section>
             <h3 className="text-lg font-semibold mb-2">1. Aceptación de los Términos</h3>
-            <p className="leading-relaxed">Al acceder y utilizar la aplicación web <strong>Lucky 100 Raffle</strong> (en adelante, "la Plataforma" o "la Aplicación"), usted acepta y se compromete a cumplir con estos Términos y Condiciones de Uso. Si no está de acuerdo con estos términos, no debe utilizar la Plataforma. Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
+            <p className="leading-relaxed">Al acceder y utilizar la aplicación web <strong>Lucky 100 Raffle</strong> (en adelante, &quot;la Plataforma&quot; o &quot;la Aplicación&quot;), usted acepta y se compromete a cumplir con estos Términos y Condiciones de Uso. Si no está de acuerdo con estos términos, no debe utilizar la Plataforma. Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
           </section>
           
           <section>
             <h3 className="text-lg font-semibold mb-2">2. Descripción del Servicio</h3>
-            <p className="leading-relaxed"><strong>Lucky 100 Raffle</strong> es una herramienta digital que facilita la organización y gestión de rifas de 100 casillas. La Plataforma únicamente "simula" la ejecución de una rifa. Nuestra función es proporcionar un tablero interactivo y funcionalidades de gestión para los organizadores.</p>
+            <p className="leading-relaxed"><strong>Lucky 100 Raffle</strong> es una herramienta digital que facilita la organización y gestión de rifas de 100 casillas. La Plataforma únicamente &quot;simula&quot; la ejecución de una rifa. Nuestra función es proporcionar un tablero interactivo y funcionalidades de gestión para los organizadores.</p>
           </section>
           
           <section>
@@ -40,7 +40,7 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
           <section>
             <h3 className="text-lg font-semibold mb-2">4. Obligaciones de los Usuarios (Organizadores y Participantes)</h3>
             <ul className="list-disc pl-6 space-y-2 leading-relaxed">
-              <li><strong>Veracidad de la Información:</strong> Usted es el único responsable de la veracidad y exactidad de la información que introduce en la Plataforma.</li>
+              <li><strong>Veracidad de la Información:</strong> Usted es el único responsable de la veracidad y exactitud de la información que introduce en la Plataforma.</li>
               <li><strong>Cumplimiento de la Normativa Legal:</strong> El uso de la Plataforma es solo para fines legales. Los organizadores son enteramente responsables de asegurarse de que sus rifas cumplan con todas las leyes y regulaciones locales, departamentales y nacionales aplicables a la organización de sorteos en su jurisdicción.</li>
               <li><strong>Contenido Prohibido:</strong> No está permitido utilizar la Plataforma para rifas que promuevan contenido ilegal, fraudulento, difamatorio, obsceno o que viole derechos de terceros. Nos reservamos el derecho de eliminar cualquier rifa que consideremos inapropiada sin previo aviso.</li>
             </ul>
@@ -53,7 +53,7 @@ export function TermsDialog({ open, onOpenChange }: TermsDialogProps) {
           
           <section>
             <h3 className="text-lg font-semibold mb-2">6. Limitación de Responsabilidad</h3>
-            <p className="leading-relaxed">La Plataforma se ofrece "tal como está". No garantizamos que el servicio sea ininterrumpido o libre de errores. <strong>En ningún caso seremos responsables por daños directos, indirectos, incidentales, o consecuentes</strong> que resulten del uso o la imposibilidad de usar la Plataforma, incluyendo, pero no limitándose a, la pérdida de datos, interrupciones del servicio o disputas entre usuarios.</p>
+            <p className="leading-relaxed">La Plataforma se ofrece &quot;tal como está&quot;. No garantizamos que el servicio sea ininterrumpido o libre de errores. <strong>En ningún caso seremos responsables por daños directos, indirectos, incidentales, o consecuentes</strong> que resulten del uso o la imposibilidad de usar la Plataforma, incluyendo, pero no limitándose a, la pérdida de datos, interrupciones del servicio o disputas entre usuarios.</p>
           </section>
           
           <section>

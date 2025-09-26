@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Controller, useForm, FormProvider, FieldErrors } from 'react-hook-form';
+import { Controller, useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
@@ -87,18 +87,21 @@ export default function SignupPage() {
       });
       
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Ocurrió un error inesperado. Por favor, inténtalo más tarde.';
       
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'Este correo ya está en uso.';
-        setError('email', { message: errorMessage });
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'La contraseña es muy débil.';
-        setError('password', { message: errorMessage });
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'El correo electrónico no es válido.';
-        setError('email', { message: errorMessage });
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'auth/email-already-in-use') {
+          errorMessage = 'Este correo ya está en uso.';
+          setError('email', { message: errorMessage });
+        } else if (firebaseError.code === 'auth/weak-password') {
+          errorMessage = 'La contraseña es muy débil.';
+          setError('password', { message: errorMessage });
+        } else if (firebaseError.code === 'auth/invalid-email') {
+          errorMessage = 'El correo electrónico no es válido.';
+          setError('email', { message: errorMessage });
+        }
       }
       
       toast({

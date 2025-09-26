@@ -31,6 +31,34 @@
     --ring: 351 66% 48%;
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 240 12% 8%;
+    --foreground: 38 60% 95%;
+    --card: 240 12% 10%;
+    --card-foreground: 38 60% 95%;
+    --popover: 240 12% 10%;
+    --popover-foreground: 38 60% 95%;
+    --primary: 38 60% 95%;
+    --primary-foreground: 311 41% 14%;
+    --secondary: 38 60% 90%;
+    --secondary-foreground: 311 41% 14%;
+    --muted: 240 12% 20%;
+    --muted-foreground: 38 60% 80%;
+    --accent: 351 66% 58%;
+    --accent-foreground: 38 60% 98%;
+    --destructive: 0 63% 51%;
+    --destructive-foreground: 38 60% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 38 60% 98%;
+    --warning: 48 96% 53%;
+    --warning-foreground: 311 41% 14%;
+    --info: 199 98% 58%;
+    --info-foreground: 38 60% 98%;
+    --border: 240 12% 20%;
+    --input: 240 12% 20%;
+    --ring: 351 66% 58%;
+  }
 }
 
 @layer base {
@@ -58,5 +86,13 @@
   }
   .animate-crown-sparkle {
     animation: crown-sparkle 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }

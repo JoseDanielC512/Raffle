@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import RaffleCard from "@/components/raffle/raffle-card";
 import RaffleBoard from "@/components/raffle/raffle-board";
 import { Raffle } from "@/lib/definitions";
@@ -60,10 +58,10 @@ const mockSlots: RaffleSlotType[] = Array.from({ length: 10 }, (_, i) => ({
 // Componente lógico: maneja redirect si está autenticado
 export default function Home() {
   const { authStatus, loading } = useAuth();
-
-  // Show a loading screen while auth state is being determined.
-  // The AuthNavigationHandler will redirect away from this page if the user is authenticated.
-  if (loading || authStatus === 'checking' || authStatus === 'authenticated') {
+  
+  // Show a loading screen only while auth state is being determined.
+  // The AuthNavigationHandler will redirect authenticated users away from this page.
+  if (loading || authStatus === 'checking') {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -72,6 +70,12 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  // If user is authenticated, they should be redirected by AuthNavigationHandler
+  // This is a fallback safety check
+  if (authStatus === 'authenticated') {
+    return null; // Don't render anything while redirect happens
   }
 
   return (

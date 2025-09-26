@@ -24,7 +24,7 @@ export default function AuthLayout({
 
   // Render the login/signup forms only if the user is unauthenticated.
   return (
-    <main className="flex items-center justify-center min-h-screen p-6">
+    <main className="flex items-center justify-center h-screen p-4">
       {children}
     </main>
   );

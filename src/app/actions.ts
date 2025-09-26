@@ -1,10 +1,9 @@
 'use server';
 
 import { z } from 'zod';
-import { generateRaffleDetails } from '@/ai/flows/generate-raffle-details';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { Raffle, RaffleSlot, SlotStatus } from '@/lib/definitions';
+import type { Raffle } from '@/lib/definitions';
 import { auth } from '@/lib/firebase'; // Client auth for client-side actions if needed
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -31,16 +30,17 @@ const LoginSchema = z.object({
 
 export type AuthState = { 
   message: string | null; 
-  errors?: any; 
+  errors?: Record<string, string[] | undefined> | undefined; 
   success?: boolean;
   redirect?: string;
   data?: { email: string; password: string }; // Añadir datos validados
 };
 
 // This action uses the client SDK because it's initiated from the client before the user is fully logged in on the server.
-export async function signupAction(prevState: AuthState, formData: FormData): Promise<AuthState> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function signupAction(_prevState: AuthState, formData: FormData): Promise<AuthState> {
   // Convertir FormData a un objeto plano, usando una aserción de tipo para poder modificarlo
-  const rawFormData = Object.fromEntries(formData.entries()) as Record<string, any>;
+  const rawFormData = Object.fromEntries(formData.entries()) as Record<string, unknown>;
   
   // Convertir explícitamente el campo 'terms' de string a booleano
   if (rawFormData.terms === 'true') {
@@ -73,7 +73,7 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
         email,
         createdAt: new Date().toISOString()
       });
-    } catch (firestoreError: any) {
+    } catch (firestoreError: unknown) {
       throw firestoreError; // Re-throw to be caught by the outer catch
     }
     
@@ -81,15 +81,20 @@ export async function signupAction(prevState: AuthState, formData: FormData): Pr
       message: 'Registro exitoso', 
       success: true
     };
-  } catch (error: any) {
-    if (error.code === 'auth/email-already-in-use') return { message: 'Este correo ya está en uso.' };
-    if (error.code === 'auth/weak-password') return { message: 'La contraseña es muy débil.' };
-    if (error.code === 'auth/invalid-email') return { message: 'El correo electrónico no es válido.' };
-    return { message: `Ocurrió un error durante el registro: ${error.code}` };
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'auth/email-already-in-use') return { message: 'Este correo ya está en uso.' };
+        if (firebaseError.code === 'auth/weak-password') return { message: 'La contraseña es muy débil.' };
+        if (firebaseError.code === 'auth/invalid-email') return { message: 'El correo electrónico no es válido.' };
+        return { message: `Ocurrió un error durante el registro: ${firebaseError.code}` };
+    }
+    return { message: 'Ocurrió un error durante el registro.' };
   }
 }
 
-export async function loginAction(prevState: AuthState, formData: FormData): Promise<AuthState> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function loginAction(_prevState: AuthState, formData: FormData): Promise<AuthState> {
   const validatedFields = LoginSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     return { message: 'La validación falló.', errors: validatedFields.error.flatten().fieldErrors };
@@ -102,14 +107,19 @@ export async function logoutAction() {
   try {
     await auth.signOut();
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+        const logoutError = error as { message: string };
+        return { success: false, error: logoutError.message };
+    }
+    return { success: false, error: 'An unknown error occurred.' };
   }
 }
 
 // --- AI GENERATION --- //
 
-export async function generateDetailsAction(prevState: any, formData: FormData): Promise<any> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function generateDetailsAction(_prevState: unknown, _formData: FormData): Promise<unknown> {
   // ... (implementation unchanged)
 }
 
@@ -137,7 +147,7 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
     const adminAuth = getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
-  } catch (error) {
+  } catch {
     throw new Error('Error de autenticación: El token no es válido.');
   }
 
@@ -178,7 +188,7 @@ export async function createRaffleAction(formData: FormData): Promise<void> {
   try {
     revalidatePath('/dashboard', 'page');
     revalidatePath('/', 'layout');
-  } catch (error) {
+  } catch {
   }
 
   redirect(`/raffle/${raffleId}`);
@@ -194,7 +204,8 @@ const UpdateSlotSchema = z.object({
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
-export async function updateSlotAction(prevState: any, formData: FormData): Promise<{ message: string; success: boolean; }> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateSlotAction(_prevState: unknown, formData: FormData): Promise<{ message: string; success: boolean; }> {
   try {
     const validatedFields = UpdateSlotSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
@@ -208,7 +219,7 @@ export async function updateSlotAction(prevState: any, formData: FormData): Prom
       const adminAuth = getAdminAuth();
       const decodedToken = await adminAuth.verifyIdToken(idToken);
       ownerId = decodedToken.uid;
-    } catch (error) {
+    } catch {
       return { message: 'Error de autenticación: El token no es válido.', success: false };
     }
 
@@ -254,7 +265,8 @@ const UpdateRaffleSchema = z.object({
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
-export async function updateRaffleAction(prevState: any, formData: FormData): Promise<{ message: string; success: boolean }> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateRaffleAction(_prevState: unknown, formData: FormData): Promise<{ message: string; success: boolean }> {
   const validatedFields = UpdateRaffleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     // En un caso real, podrías querer devolver los errores de validación
@@ -268,7 +280,7 @@ export async function updateRaffleAction(prevState: any, formData: FormData): Pr
     const adminAuth = getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
-  } catch (error) {
+  } catch {
     throw new Error('Error de autenticación: El token no es válido.');
   }
 
@@ -315,7 +327,8 @@ const FinalizeRaffleWithWinnerSchema = z.object({
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
-export async function finalizeRaffleWithWinnerAction(prevState: any, formData: FormData): Promise<{ message: string; success: boolean }> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function finalizeRaffleWithWinnerAction(_prevState: unknown, formData: FormData): Promise<{ message: string; success: boolean }> {
   try {
     const validatedFields = FinalizeRaffleWithWinnerSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
@@ -330,7 +343,7 @@ export async function finalizeRaffleWithWinnerAction(prevState: any, formData: F
       const adminAuth = getAdminAuth();
       const decodedToken = await adminAuth.verifyIdToken(idToken);
       ownerId = decodedToken.uid;
-    } catch (error) {
+    } catch {
       return { message: 'Error de autenticación: El token no es válido.', success: false };
     }
 

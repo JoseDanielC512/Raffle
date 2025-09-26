@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion'; // Import for animations
 import { Flag, AlertTriangle } from 'lucide-react';
 import type { Raffle } from '@/lib/definitions';
 import DeclareWinnerDialog from './DeclareWinnerDialog';
@@ -16,7 +17,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 interface FinalizeRaffleButtonProps {
   raffle: Raffle;
@@ -26,7 +26,6 @@ interface FinalizeRaffleButtonProps {
 export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffleButtonProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
-  const { toast } = useToast();
 
   // Lógica para determinar si el botón debe ser visible
   const today = new Date();
@@ -55,13 +54,25 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
   }
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.9, duration: 0.5 }}
+    >
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" className="w-full sm:w-auto">
-            <Flag className="mr-2 h-4 w-4" />
-            Finalizar Rifa
-          </Button>
+          <motion.div
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button 
+              variant="destructive" 
+              className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl border border-red-400/50 transition-all duration-300"
+            >
+              <Flag className="mr-2 h-5 w-5" />
+              Finalizar Rifa
+            </Button>
+          </motion.div>
         </AlertDialogTrigger>
         <AlertDialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
           <AlertDialogHeader>
@@ -94,6 +105,6 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
         onOpenChange={setShowWinnerDialog}
         onSuccess={handleFinalizationSuccess}
       />
-    </>
+    </motion.div>
   );
 }

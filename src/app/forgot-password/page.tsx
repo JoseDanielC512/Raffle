@@ -48,15 +48,18 @@ export default function ForgotPasswordPage() {
         description: 'Hemos enviado un enlace de restablecimiento a tu correo electrónico.',
         variant: 'info',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Ocurrió un error. Por favor, inténtalo más tarde.';
       
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No se encontró una cuenta con este correo electrónico.';
-        setError('email', { message: errorMessage });
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Dirección de correo electrónico inválida.';
-        setError('email', { message: errorMessage });
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const firebaseError = error as { code: string };
+        if (firebaseError.code === 'auth/user-not-found') {
+          errorMessage = 'No se encontró una cuenta con este correo electrónico.';
+          setError('email', { message: errorMessage });
+        } else if (firebaseError.code === 'auth/invalid-email') {
+          errorMessage = 'Dirección de correo electrónico inválida.';
+          setError('email', { message: errorMessage });
+        }
       }
       
       toast({
