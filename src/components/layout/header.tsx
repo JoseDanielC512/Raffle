@@ -49,7 +49,7 @@ export function Header() {
   const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sm:px-6 lg:px-8 ${isAuthPage ? 'hidden' : ''}`}>
+    <header className={`sticky top-0 z-50 w-full border-b bg-battleship_gray-100/95 backdrop-blur supports-[backdrop-filter]:bg-battleship_gray-100/60 px-4 sm:px-6 lg:px-8 ${isAuthPage ? 'hidden' : ''} dark:bg-battleship_gray-900/95 dark:supports-[backdrop-filter]:bg-battleship_gray-900/60`}>
       <div className="flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-6">
@@ -70,7 +70,7 @@ export function Header() {
             <>
               {loading && (
                 <div className="h-9 w-9 flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-4 w-4 animate-spin text-battleship_gray-600 dark:text-battleship_gray-400" />
                 </div>
               )}
               {!loading && user && (
@@ -85,7 +85,7 @@ export function Header() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                        <p className="text-xs leading-none text-battleship_gray-600 dark:text-battleship_gray-400">
                           {user.email}
                         </p>
                       </div>
@@ -127,7 +127,7 @@ export function Header() {
                     <DropdownMenuItem 
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                      className="cursor-pointer text-sage-500 focus:bg-sage-500 focus:text-sage-100"
                     >
                       {isLoggingOut ? (
                         <>
@@ -143,8 +143,8 @@ export function Header() {
               )}
               {!loading && !user && (
                 <div className="flex items-center gap-2">
-                  <a href="/login" className="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Iniciar Sesión</a>
-                  <a href="/signup" className="px-3 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-md">Regístrate</a>
+                  <a href="/login" className="px-3 py-2 text-sm font-medium text-battleship_gray-600 dark:text-battleship_gray-400 hover:bg-tekhelet-500 hover:text-tekhelet-100 rounded-md">Iniciar Sesión</a>
+                  <a href="/signup" className="px-3 py-2 text-sm font-medium bg-ultra_violet-500 text-ultra_violet-100 hover:bg-ultra_violet-500/90 rounded-md">Regístrate</a>
                 </div>
               )}
             </>

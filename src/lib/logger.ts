@@ -10,7 +10,16 @@ interface LogEntry {
 }
 
 class Logger {
+  private isProduction(): boolean {
+    return process.env.NODE_ENV === 'production';
+  }
+
   private log(level: LogLevel, component: string, action: string, data?: unknown, error?: unknown) {
+    // Don't log anything in production
+    if (this.isProduction()) {
+      return;
+    }
+
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,

@@ -21,6 +21,7 @@ const mockRaffles: Raffle[] = [
     finalizedAt: null,
     finalizationDate: null,
     winnerSlotNumber: null,
+    slotPrice: 5000,
     ownerId: 'mock-owner',
   },
   {
@@ -33,6 +34,7 @@ const mockRaffles: Raffle[] = [
     finalizedAt: null,
     finalizationDate: null,
     winnerSlotNumber: null,
+    slotPrice: 10000,
     ownerId: 'mock-owner2',
   },
   {
@@ -45,6 +47,7 @@ const mockRaffles: Raffle[] = [
     finalizedAt: new Date().toISOString(),
     finalizationDate: null,
     winnerSlotNumber: 42,
+    slotPrice: 15000,
     ownerId: 'mock-owner3',
   },
 ];
@@ -95,8 +98,10 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button asChild size="lg" className="w-full sm:w-auto group">
                   <Link href="/dashboard">
-                    <ArrowUpRight className="mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                    Ir al Dashboard
+                    <span className="flex items-center">
+                      <ArrowUpRight className="mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      Ir al Dashboard
+                    </span>
                   </Link>
                 </Button>
               </div>
@@ -116,7 +121,14 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {mockRaffles.map((raffle) => (
-              <RaffleCard key={raffle.id} raffle={raffle} />
+              <RaffleCard 
+                key={raffle.id} 
+                raffle={{
+                  ...raffle,
+                  // Añadir un nombre de ganador ficticio solo a la última rifa
+                  ...(raffle.id === '3' && { winnerName: 'Ana García' })
+                }} 
+              />
             ))}
           </div>
         </div>
@@ -143,6 +155,7 @@ export default function Home() {
                 finalizedAt: null,
                 finalizationDate: null,
                 winnerSlotNumber: null,
+                slotPrice: 7500,
                 ownerId: 'preview',
               }}
               slots={mockSlots}

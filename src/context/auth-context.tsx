@@ -159,13 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
-      <SessionTimeoutDialog
-        open={showTimeoutWarning}
-        onOpenChange={setShowTimeoutWarning}
-        onStay={resetInactivityTimer}
-        countdownSeconds={WARNING_COUNTDOWN_SECONDS}
-      />
+      <>
+        {children}
+        <SessionTimeoutDialog
+          open={showTimeoutWarning}
+          onOpenChange={setShowTimeoutWarning}
+          onStay={resetInactivityTimer}
+          countdownSeconds={WARNING_COUNTDOWN_SECONDS}
+        />
+      </>
     </AuthContext.Provider>
   );
 }

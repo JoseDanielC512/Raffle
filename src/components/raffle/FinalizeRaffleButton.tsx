@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface FinalizeRaffleButtonProps {
   raffle: Raffle;
@@ -26,6 +27,7 @@ interface FinalizeRaffleButtonProps {
 export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffleButtonProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
+  const { toast } = useToast();
 
   // Lógica para determinar si el botón debe ser visible
   const today = new Date();
@@ -43,10 +45,12 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
   };
 
   const handleFinalizationSuccess = () => {
-    // La acción de finalización ya se ejecutó.
-    // Podríamos mostrar un toast adicional si fuera necesario,
-    // pero el DeclareWinnerDialog ya muestra uno.
-    // El listener de onSnapshot en la página principal se encargará de refrescar la UI.
+    // Show success toast
+    toast({
+      title: "¡Rifa finalizada!",
+      description: "La rifa ha sido finalizada exitosamente y el ganador ha sido declarado.",
+      variant: "success",
+    });
   };
 
   if (!shouldShowButton) {
@@ -67,7 +71,7 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
           >
             <Button 
               variant="destructive" 
-              className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl border border-red-400/50 transition-all duration-300"
+              className="w-full sm:w-auto bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-battleship_gray-100 font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl border border-sage-400/50 transition-all duration-300"
             >
               <Flag className="mr-2 h-5 w-5" />
               Finalizar Rifa
@@ -76,17 +80,17 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
         </AlertDialogTrigger>
         <AlertDialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertDialogTitle className="flex items-center gap-2 text-sage-500">
               <AlertTriangle className="h-5 w-5" />
               ¿Estás absolutamente seguro?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
+            <AlertDialogDescription className="text-battleship_gray-600 dark:text-battleship_gray-400">
               Esta acción es irreversible. Una vez que declares el ganador, la rifa se
               finalizará permanentemente y no podrás realizar más cambios.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="space-y-2 sm:space-y-0">
-            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0 bg-accent text-accent-foreground hover:bg-accent/90">
+            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0 bg-tekhelet-500 text-tekhelet-100 hover:bg-tekhelet-500/90">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

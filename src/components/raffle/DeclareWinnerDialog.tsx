@@ -105,8 +105,8 @@ export default function DeclareWinnerDialog({
               name="winnerSlotNumber"
               type="number"
               placeholder="Ej: 55"
-              min="1"
-              max="100"
+              min="0"
+              max="99"
               required
             />
           </div>

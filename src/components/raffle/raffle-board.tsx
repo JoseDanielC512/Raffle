@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { IconButton } from "../ui/icon-button";
 import { HelpCircle } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerSlotConfetti } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ type RaffleBoardProps = {
   onInfoClick?: () => void;
 };
 
-export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }: RaffleBoardProps) {
+const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }: RaffleBoardProps) => {
   const availableSlots = slots.filter(slot => slot.status === 'available').length;
   const reservedSlots = slots.filter(slot => slot.status === 'reserved').length;
   const paidSlots = slots.filter(slot => slot.status === 'paid').length;
@@ -38,13 +38,13 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate, onIn
       className="relative"
     >
       {/* Outer glow effect */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 rounded-3xl blur-xl"></div>
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-tekhelet-500/20 via-ultra_violet-500/20 to-ultra_violet-600/20 rounded-3xl blur-xl"></div>
       
-      <Card className="bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-lg border-white/20 shadow-2xl rounded-2xl overflow-hidden">
-        <CardHeader className="pb-6 bg-gradient-to-r from-cyan-600/20 to-indigo-600/20 border-b border-white/10">
+      <Card className="bg-gradient-to-br from-battleship_gray-100/10 via-battleship_gray-100/5 to-battleship_gray-100/10 backdrop-blur-lg border-battleship_gray-100/20 shadow-2xl rounded-2xl overflow-hidden">
+        <CardHeader className="pb-6 bg-gradient-to-r from-tekhelet-600/20 to-ultra_violet-600/20 border-b border-battleship_gray-100/10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex items-center gap-4 flex-wrap">
-              <CardTitle className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+              <CardTitle className="text-2xl md:text-3xl font-bold text-battleship_gray-100 drop-shadow-lg">
                 Tablero de Rifas
               </CardTitle>
               <motion.div
@@ -53,11 +53,11 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate, onIn
                 transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
               >
                 <Badge 
-                  variant={raffle.status === 'finalized' ? "destructive" : "default"} 
+                  variant={raffle.status === 'finalized' ? "destructive" : "default" } 
                   className={`text-sm font-semibold px-3 py-1 rounded-full shadow-lg ${
                     raffle.status === 'finalized' 
-                      ? 'bg-red-500/80 text-white border border-red-400/50' 
-                      : 'bg-green-500/80 text-white border border-green-400/50'
+                      ? 'bg-sage-500/80 text-battleship_gray-100 border border-sage-400/50'
+                      : 'bg-sage-500/80 text-battleship_gray-100 border border-sage-400/50'
                   }`}
                 >
                   {raffle.status === 'finalized' ? "Finalizada" : "Activa"}
@@ -76,13 +76,13 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate, onIn
                   tooltip="Ver información de la rifa"
                   tooltipSide="bottom"
                   aria-label="Ver información de la rifa"
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
+                  className="bg-battleship_gray-100/10 hover:bg-battleship_gray-100/20 text-battleship_gray-100 border-battleship_gray-100/30 shadow-md hover:shadow-lg transition-all duration-300"
                 />
               </motion.div>
             )}
           </div>
           <motion.p 
-            className="text-cyan-100 text-base md:text-lg font-light drop-shadow"
+            className="text-tekhelet-100 text-base md:text-lg font-light drop-shadow"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -154,4 +154,8 @@ export default function RaffleBoard({ raffle, slots, isOwner, onSlotUpdate, onIn
       </Card>
     </motion.div>
   );
-}
+});
+
+RaffleBoard.displayName = "RaffleBoard";
+
+export default RaffleBoard;

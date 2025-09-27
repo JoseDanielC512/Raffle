@@ -25,7 +25,7 @@ export function StatCard({ title, value, description, icon, isLoading }: StatCar
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-battleship_gray-600 dark:text-battleship_gray-400">{description}</p>
         )}
       </CardContent>
     </Card>

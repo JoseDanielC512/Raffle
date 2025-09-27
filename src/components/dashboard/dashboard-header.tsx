@@ -20,7 +20,7 @@ export function DashboardHeader({ canCreateRaffle }: DashboardHeaderProps) {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Bienvenido de nuevo, {user?.displayName?.split(' ')[0] || 'Usuario'}!
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-battleship_gray-600 dark:text-battleship_gray-400 mt-1">
           Aquí tienes un resumen de tus rifas y actividades.
         </p>
       </div>

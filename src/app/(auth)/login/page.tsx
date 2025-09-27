@@ -6,8 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence, updateProfile } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,7 +56,28 @@ export default function LoginPage() {
       const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(auth, persistence);
 
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      // Check if displayName is missing and try to update it from Firestore
+      if (!userCredential.user.displayName) {
+        try {
+          const userDocRef = doc(db, 'users', userCredential.user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.name) {
+              await updateProfile(userCredential.user, { displayName: userData.name });
+              // Force a refresh of the user object to reflect changes in AuthContext
+              await userCredential.user.reload();
+            }
+          }
+        } catch (firestoreError) {
+          // Silently fail if we can't fetch/update from Firestore, as it's not critical for login
+          console.error('Error updating user profile from Firestore:', firestoreError);
+        }
+      }
+
       toast({
         title: '¡Bienvenido de Nuevo!',
         description: 'Has iniciado sesión correctamente.',
@@ -106,12 +128,12 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
               <Input id="email" type="email" placeholder="correo@ejemplo.com" {...register('email')} />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-sage-500 mt-1">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input id="password" type="password" placeholder="Introduce tu contraseña" {...register('password')} />
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-xs text-sage-500 mt-1">{errors.password.message}</p>}
             </div>
             
             <div className="flex flex-col space-y-2 pt-2">
@@ -119,7 +141,7 @@ export default function LoginPage() {
                 <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(Boolean(checked))} />
                 <Label htmlFor="remember" className="text-sm">Recuérdame</Label>
               </div>
-              <Link href="/forgot-password" className="text-sm underline text-primary">¿Olvidaste tu contraseña?</Link>
+              <Link href="/forgot-password" className="text-sm underline text-ultra_violet-500">¿Olvidaste tu contraseña?</Link>
             </div>
 
             <Button type="submit" className="w-full" disabled={isFormSubmitting || authLoading}>
@@ -132,7 +154,7 @@ export default function LoginPage() {
           </form>
         </FormProvider>
         <div className="mt-6 text-center text-sm">
-          ¿No tienes una cuenta? <Link href="/signup" className="underline text-primary">Regístrate</Link>
+          ¿No tienes una cuenta? <Link href="/signup" className="underline text-ultra_violet-500">Regístrate</Link>
         </div>
       </CardContent>
     </Card>

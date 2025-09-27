@@ -9,6 +9,7 @@ export type RaffleSlot = {
 export type Raffle = {
   id: string; // Document ID
   ownerId: string; // UID from Firebase Auth
+  ownerName?: string; // Display name of the owner
   name: string;
   description: string;
   terms: string;
@@ -17,4 +18,20 @@ export type Raffle = {
   createdAt: string;
   finalizedAt: string | null;
   finalizationDate: string | null; // Fecha de finalización programada
+  slotPrice: number; // Precio de la casilla, obligatorio
+  activityHistory?: RaffleActivity[]; // Array of activity logs
+};
+
+export type RaffleActivity = {
+  id: string;
+  action: 'slot_updated' | 'raffle_created' | 'raffle_finalized' | 'raffle_updated';
+  timestamp: string;
+  userId: string;
+  details: {
+    slotNumber?: number;
+    previousStatus?: SlotStatus;
+    newStatus?: SlotStatus;
+    winnerSlotNumber?: number;
+    message?: string;
+  };
 };

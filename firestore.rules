@@ -33,6 +33,17 @@ service cloud.firestore {
         // ESCRITURA (WRITE): Solo el propietario de la rifa puede escribir en los slots.
         allow write: if request.auth != null && get(/databases/$(database)/documents/raffles/$(raffleId)).data.ownerId == request.auth.uid;
       }
+
+      // Reglas para la subcolección 'activity'
+      match /activity/{activityId} {
+        // LECTURA (READ): Cualquier persona puede leer el historial de actividades.
+        // Esto es seguro ya que los datos de la actividad no son sensibles y permite
+        // que las consultas 'list' en la colección 'raffles' funcionen correctamente.
+        allow read: if true;
+
+        // ESCRITURA (WRITE): Solo el propietario de la rifa puede escribir en el historial de actividades.
+        allow write: if request.auth != null && get(/databases/$(database)/documents/raffles/$(raffleId)).data.ownerId == request.auth.uid;
+      }
     }
   }
 }

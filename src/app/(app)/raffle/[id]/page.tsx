@@ -7,9 +7,10 @@ import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { motion } from "framer-motion";
 
 import { db } from '@/lib/firebase';
-import type { Raffle, RaffleSlot } from '@/lib/definitions';
+import type { Raffle, RaffleSlot, RaffleActivity } from '@/lib/definitions';
 import RaffleBoard from '@/components/raffle/raffle-board';
 import RaffleInfoDialog from '@/components/raffle/RaffleInfoDialog';
+import ActivityHistory from '@/components/raffle/activity-history';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
 import EditRaffleDialog from '@/components/raffle/EditRaffleDialog';
@@ -24,7 +25,7 @@ function RafflePageSkeleton() {
       {/* Animated CSS Background - Same as public view */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNMTIgMTJ2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
       </div>
       
       <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
@@ -73,7 +74,9 @@ function RafflePageSkeleton() {
 export default function RafflePage({ params }: { params: Promise<{ id: string }> }) {
   const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [slots, setSlots] = useState<RaffleSlot[]>([]);
+  const [activities, setActivities] = useState<RaffleActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(true);
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
   const { user, loading: authLoading } = useAuth();
@@ -173,7 +176,9 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
           .map((doc) => doc.data() as RaffleSlot)
           .sort((a, b) => a.slotNumber - b.slotNumber);
         setSlots(slotsData);
-        setLoading(false);
+        if (!loading && !activitiesLoading) {
+          setLoading(false);
+        }
       },
       (error) => {
         console.error("Error en listener de casillas:", error);
@@ -191,7 +196,42 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
     );
 
     return () => unsubscribe(); // Cleanup listener on unmount
-  }, [resolvedParams.id, user, authLoading, router, toast]);
+  }, [resolvedParams.id, user, authLoading, router, toast, loading, activitiesLoading]);
+
+  // Listener en tiempo real para el historial de actividades
+  useEffect(() => {
+    if (authLoading || !user || !resolvedParams.id) return;
+
+    const activitiesColRef = collection(db, 'raffles', resolvedParams.id, 'activity');
+    const unsubscribe = onSnapshot(
+      activitiesColRef,
+      (snapshot) => {
+        const activitiesData = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }) as RaffleActivity)
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Sort by timestamp (newest first)
+        setActivities(activitiesData);
+        setActivitiesLoading(false);
+        if (!loading && !activitiesLoading) {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Error en listener de actividades:", error);
+        setIsLiveConnected(false);
+        toast({
+          variant: "destructive",
+          title: "Error de Conexión",
+          description: "No se pudo conectar a la base de datos en tiempo real. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones que puedan bloquear la conexión.",
+        });
+        setActivitiesLoading(false);
+        if (!loading && !activitiesLoading) {
+          setLoading(false);
+        }
+      }
+    );
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, [resolvedParams.id, user, authLoading, router, loading, toast, activitiesLoading]);
 
   // Mostrar loading mientras se verifica la autenticación
   if (authLoading) {
@@ -225,7 +265,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
       {/* Animated CSS Background - Same as public view */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNMTIgMTJ2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
       </div>
       
       <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
@@ -317,6 +357,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                   raffleId={raffle.id}
                   currentName={raffle.name}
                   currentDescription={raffle.description}
+                  currentSlotPrice={raffle.slotPrice}
                   currentFinalizationDate={raffle.finalizationDate}
                 >
                   <IconButton
@@ -332,35 +373,40 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
           )}
         </motion.div>
 
-        <div className="space-y-12">
-          {/* Tablero Full-Width */}
-          <section className="w-full">
-            <RaffleBoard 
-              raffle={raffle} 
-              slots={slots} 
-              isOwner={isOwner} 
-              onSlotUpdate={handleSlotUpdate} 
-              onInfoClick={() => setIsInfoDialogOpen(true)}
-            />
-          </section>
+        {/* Tablero Full-Width */}
+        <section className="w-full">
+          <RaffleBoard
+            raffle={raffle}
+            slots={slots}
+            isOwner={isOwner}
+            onSlotUpdate={handleSlotUpdate}
+            onInfoClick={() => setIsInfoDialogOpen(true)}
+          />
+        </section>
 
-          {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
-          {isOwner && (
-            <div className="w-full">
-              <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
-            </div>
-          )}
+        {/* Historial de Actividad */}
+        <section className="w-full">
+          <ActivityHistory activities={activities} />
+        </section>
 
-          {/* Diálogo de Información de la Rifa */}
+        {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
+        {isOwner && (
+          <div className="w-full">
+            <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
+          </div>
+        )}
+
+        {/* Diálogo de Información de la Rifa */}
           <RaffleInfoDialog
             open={isInfoDialogOpen}
             onOpenChange={setIsInfoDialogOpen}
             terms={raffle.terms}
+            slotPrice={raffle.slotPrice}
+            ownerName={raffle.ownerName}
             winnerName={winnerName || undefined}
             winnerSlotNumber={raffle.winnerSlotNumber || undefined}
             isFinalized={!!raffle.finalizedAt}
           />
-        </div>
       </div>
     </div>
   );

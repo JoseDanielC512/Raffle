@@ -39,3 +39,17 @@ export async function triggerSlotConfetti(elementId: string): Promise<void> {
     console.warn(`Element with ID "${elementId}" not found for confetti effect.`);
   }
 }
+
+/**
+ * Formatea un valor numérico a moneda Peso Colombiano (COP).
+ * @param value El valor numérico a formatear.
+ * @returns El string formateado como moneda COP.
+ */
+export function formatCurrencyCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}

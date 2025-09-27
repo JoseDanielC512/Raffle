@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { RaffleTable } from "@/components/raffle/raffle-table";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { formatCurrencyCOP } from "@/lib/utils";
 
 function DashboardSkeleton() {
   return (
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
 
+  // Effect for fetching raffles
   useEffect(() => {
     if (authLoading || !user) {
       if (!authLoading) setDataLoading(false);
@@ -39,48 +41,57 @@ export default function Dashboard() {
     setDataLoading(true);
     const rafflesQuery = query(collection(db, 'raffles'), where('ownerId', '==', user.uid));
     
-    const unsubscribe = onSnapshot(rafflesQuery, (querySnapshot) => {
+    const raffleUnsubscribe = onSnapshot(rafflesQuery, (querySnapshot) => {
       const fetchedRaffles: (Raffle & { id: string })[] = [];
-      const slotUnsubscribes: (() => void)[] = [];
-
       if (querySnapshot.empty) {
         setRafflesData([]);
-        setRaffleSlots({});
+        setRaffleSlots({}); // Clear slots when no raffles
         setDataLoading(false);
         return;
       }
-
       querySnapshot.forEach((doc) => {
-        fetchedRaffles.push({ id: doc.id, ...doc.data() } as Raffle & { id: string });
+        const raffleData = { id: doc.id, ...doc.data() } as Raffle & { id: string };
+        fetchedRaffles.push(raffleData);
       });
-
       setRafflesData(fetchedRaffles);
-
-      fetchedRaffles.forEach(raffle => {
-        const slotsRef = collection(db, 'raffles', raffle.id, 'slots');
-        const slotUnsubscribe = onSnapshot(slotsRef, (slotsSnapshot) => {
-          const slotsData: RaffleSlot[] = [];
-          slotsSnapshot.forEach(slotDoc => {
-            slotsData.push({ id: slotDoc.id, ...slotDoc.data() } as unknown as RaffleSlot);
-          });
-          setRaffleSlots(prev => ({ ...prev, [raffle.id]: slotsData }));
-        });
-        slotUnsubscribes.push(slotUnsubscribe);
-      });
-
       setDataLoading(false);
-
-      // Cleanup for slots listeners when component unmounts or query changes
-      return () => slotUnsubscribes.forEach(unsub => unsub());
-
     }, (error) => {
-      console.error("Error listening to raffles: ", error);
+      // console.error("Error listening to raffles: ", error); // Removed for production
       toast({ title: "Error al Cargar Datos", description: "No se pudieron cargar los datos del dashboard.", variant: "destructive" });
       setDataLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [user, authLoading, toast]);
+    return () => {
+      raffleUnsubscribe();
+    };
+  }, [user, authLoading, toast]); // Removed rafflesData from dependencies
+
+  // Effect for fetching slots for each raffle
+  useEffect(() => {
+    const slotUnsubscribes: { [raffleId: string]: () => void } = {};
+
+    if (rafflesData.length > 0) {
+      rafflesData.forEach(raffle => {
+        const raffleId = raffle.id;
+        // Avoid creating duplicate subscriptions if one already exists for this raffleId
+        if (!slotUnsubscribes[raffleId]) {
+          const slotsRef = collection(db, 'raffles', raffleId, 'slots');
+          const slotUnsubscribe = onSnapshot(slotsRef, (slotsSnapshot) => {
+            const slotsData: RaffleSlot[] = [];
+            slotsSnapshot.forEach(slotDoc => {
+              slotsData.push({ id: slotDoc.id, ...slotDoc.data() } as unknown as RaffleSlot);
+            });
+            setRaffleSlots(prev => ({ ...prev, [raffleId]: slotsData }));
+          });
+          slotUnsubscribes[raffleId] = slotUnsubscribe;
+        }
+      });
+    }
+
+    return () => {
+      Object.values(slotUnsubscribes).forEach(unsub => unsub());
+    };
+  }, [rafflesData]); // This effect depends on rafflesData
 
   const { raffles, ...stats } = useMemo(() => {
     const calculatedRaffles = rafflesData.map((raffle: Raffle & { id: string }) => {
@@ -97,7 +108,7 @@ export default function Dashboard() {
     const activeRafflesCount = calculatedRaffles.filter(r => r.status === 'active').length;
     const completedRafflesCount = calculatedRaffles.filter(r => r.status === 'finalized').length;
     const totalSoldSlots = calculatedRaffles.reduce((sum, r) => sum + r.filledSlots, 0);
-    const potentialRevenue = totalSoldSlots * 10; // Assuming $10 per slot
+    const potentialRevenue = calculatedRaffles.reduce((sum, r) => sum + (r.filledSlots * r.slotPrice), 0);
 
     return {
       raffles: calculatedRaffles,
@@ -122,9 +133,9 @@ export default function Dashboard() {
           ) : raffles.length > 0 ? (
             <RaffleTable raffles={raffles} />
           ) : (
-            <div className="text-center py-16 md:py-24 border-2 border-dashed border-muted rounded-xl">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">¡Aún no hay rifas!</h2>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+            <div className="text-center py-16 md:py-24 border-2 border-dashed border-battleship_gray-300 dark:border-battleship_gray-700 rounded-xl">
+              <h2 className="text-2xl font-semibold text-battleship_gray-900 dark:text-battleship_gray-100 mb-4">¡Aún no hay rifas!</h2>
+              <p className="text-battleship_gray-600 dark:text-battleship_gray-400 mb-8 max-w-md mx-auto">
                 Comienza tu primera rifa para empezar a vender casillas.
               </p>
               {stats.canCreateRaffle && (
@@ -143,27 +154,27 @@ export default function Dashboard() {
             title="Rifas Activas" 
             value={stats.activeRafflesCount} 
             description="de 2 permitidas" 
-            icon={<ListChecks className="h-4 w-4 text-muted-foreground" />} 
+            icon={<ListChecks className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Rifas Completadas" 
             value={stats.completedRafflesCount} 
-            icon={<Trophy className="h-4 w-4 text-muted-foreground" />} 
+            icon={<Trophy className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Casillas Vendidas" 
             value={stats.totalSoldSlots} 
             description="en todas tus rifas" 
-            icon={<Ticket className="h-4 w-4 text-muted-foreground" />} 
+            icon={<Ticket className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Ingresos Potenciales" 
-            value={`${stats.potentialRevenue}`} 
+            value={formatCurrencyCOP(stats.potentialRevenue)} 
             description="basado en casillas vendidas" 
-            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} 
+            icon={<DollarSign className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
             isLoading={isLoading}
           />
         </aside>

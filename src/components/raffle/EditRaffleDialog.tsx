@@ -26,13 +26,14 @@ import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrencyCOP } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 
 interface EditRaffleDialogProps {
   raffleId: string;
   currentName: string;
   currentDescription: string;
+  currentSlotPrice: number;
   currentFinalizationDate: string | null;
   children: React.ReactNode;
 }
@@ -61,6 +62,7 @@ export default function EditRaffleDialog({
   raffleId,
   currentName,
   currentDescription,
+  currentSlotPrice,
   currentFinalizationDate,
   children,
 }: EditRaffleDialogProps) {
@@ -72,7 +74,7 @@ export default function EditRaffleDialog({
   );
 
   const { toast } = useToast();
-  
+
   const [updateState, updateDispatch] = useActionState(updateRaffleAction, { message: '', success: false });
 
   useEffect(() => {
@@ -133,6 +135,18 @@ export default function EditRaffleDialog({
             <Label htmlFor="description">Descripción</Label>
             <Textarea id="description" name="description" placeholder="Describe tu rafa" className="resize-none min-h-[120px]" defaultValue={currentDescription} required />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="slotPrice">Precio de la Casilla (COP)</Label>
+            <Input 
+              id="slotPrice" 
+              name="slotPrice" 
+              type="text" // Use text to display formatted currency
+              value={formatCurrencyCOP(currentSlotPrice)}
+              readOnly
+              className="bg-battleship_gray-300 dark:bg-battleship_gray-700 cursor-not-allowed"
+            />
+          </div>
           
           <div className="space-y-2">
             <Label>Fecha de Finalización (Opcional)</Label>
@@ -142,7 +156,7 @@ export default function EditRaffleDialog({
                   variant="outline"
                   className={cn(
                     'w-full pl-3 text-left font-normal',
-                    !selectedDate && 'text-muted-foreground'
+                    !selectedDate && 'text-battleship_gray-600 dark:text-battleship_gray-400'
                   )}
                 >
                   {selectedDate ? (

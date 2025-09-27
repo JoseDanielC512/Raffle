@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import type { Raffle } from '@/lib/definitions';
 import { auth } from '@/lib/firebase'; // Client auth for client-side actions if needed
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
@@ -118,9 +117,51 @@ export async function logoutAction() {
 
 // --- AI GENERATION --- //
 
+// Define the state type for generateDetailsAction
+type GenerateDetailsState = {
+  name?: string;
+  description?: string;
+  terms?: string;
+  message?: string | null;
+  errors?: Record<string, string[] | undefined> | undefined;
+};
+
+// Define the schema for AI generation input
+const GenerateDetailsSchema = z.object({
+  prompt: z.string().min(1, 'La descripción del premio es obligatoria.'),
+});
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function generateDetailsAction(_prevState: unknown, _formData: FormData): Promise<unknown> {
-  // ... (implementation unchanged)
+export async function generateDetailsAction(prevState: GenerateDetailsState, formData: FormData): Promise<GenerateDetailsState> {
+  const validatedFields = GenerateDetailsSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!validatedFields.success) {
+    return { 
+      message: 'La validación falló.', 
+      errors: validatedFields.error.flatten().fieldErrors 
+    };
+  }
+
+  const { prompt } = validatedFields.data;
+  
+  try {
+    // Simulate AI generation (in a real implementation, this would call an AI service)
+    // For now, return mock data based on the prompt
+    const mockName = `Rifa de ${prompt.split(' ')[0]}`;
+    const mockDescription = `¡Participa en esta increíble rifa! Estás compitiendo por ${prompt}.`;
+    const mockTerms = `1. El participante debe ser mayor de edad.\n2. El ganador será elegido al azar.\n3. No se permiten devoluciones.\n4. La rifa se sorteará dentro de los próximos 30 días.`;
+
+    return {
+      name: mockName,
+      description: mockDescription,
+      terms: mockTerms,
+      message: 'Contenido generado exitosamente con IA',
+    };
+  } catch (error) {
+    return { 
+      message: error instanceof Error ? error.message : 'Error al generar contenido con IA.',
+      errors: undefined
+    };
+  }
 }
 
 // --- RAFFLE ACTIONS --- //
@@ -129,76 +170,119 @@ const CreateRaffleSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
   description: z.string().min(1, 'La descripción es obligatoria.'),
   terms: z.string().min(1, 'Los términos son obligatorios.'),
+  slotPrice: z.coerce.number().min(1, 'El precio de la casilla es obligatorio y debe ser mayor a 0.'),
   finalizationDate: z.string().nullable().optional(), // Fecha de finalización en formato ISO string
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
-export async function createRaffleAction(formData: FormData): Promise<void> {
+export async function createRaffleAction(prevState: { message: string | null; success?: boolean }, formData: FormData): Promise<{ message: string | null; success?: boolean; raffleId?: string }> {
+  console.log('[CREATE_RAFFLE_ACTION] Iniciando acción. FormData recibido:', Object.fromEntries(formData.entries()));
 
   const validatedFields = CreateRaffleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
-    throw new Error('La validación de los campos falló.');
+    console.error('[CREATE_RAFFLE_ACTION] ERROR: Validación de Zod fallida.', validatedFields.error.flatten());
+    return { message: 'La validación de los campos falló.', success: false };
   }
 
+  console.log('[CREATE_RAFFLE_ACTION] Validación de Zod exitosa. Datos parseados:', validatedFields.data);
   const { idToken, ...raffleData } = validatedFields.data;
 
   let ownerId: string;
+  let ownerName: string;
   try {
+    console.log('[CREATE_RAFFLE_ACTION] Verificando idToken...');
     const adminAuth = getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
-  } catch {
-    throw new Error('Error de autenticación: El token no es válido.');
+    const userRecord = await adminAuth.getUser(ownerId);
+    ownerName = userRecord.displayName || 'Usuario Anónimo';
+    console.log('[CREATE_RAFFLE_ACTION] idToken verificado. UID del owner:', ownerId, 'Name:', ownerName);
+    console.log('[CREATE_RAFFLE_ACTION] Claims del token:', decodedToken);
+  } catch (error) {
+    console.error('[CREATE_RAFFLE_ACTION] ERROR: Falló la verificación del idToken.', error);
+    return { message: 'Error de autenticación: El token no es válido.', success: false };
   }
 
-  let raffleId: string;
   try {
+    console.log('[CREATE_RAFFLE_ACTION] Contando rifas activas para el usuario:', ownerId);
     const activeRaffleCount = await countActiveRafflesForUserAdmin(ownerId);
+    console.log('[CREATE_RAFFLE_ACTION] Rifas activas encontradas:', activeRaffleCount);
 
     if (activeRaffleCount >= 2) {
+      console.warn('[CREATE_RAFFLE_ACTION] ADVERTENCIA: Límite de rifas activas alcanzado.');
       throw new Error('Has alcanzado el límite de 2 rifas activas. No puedes crear más rifas hasta finalizar una existente.');
     }
 
     const adminDb = getAdminDb();
     const newRaffleRef = adminDb.collection('raffles').doc();
-    raffleId = newRaffleRef.id;
+    const raffleId = newRaffleRef.id;
+    console.log('[CREATE_RAFFLE_ACTION] Nuevo ID de rifa generado:', raffleId);
 
     const newRaffle: Omit<Raffle, 'id'> = {
       ...raffleData,
       ownerId,
+      ownerName,
       status: 'active',
       winnerSlotNumber: null,
       createdAt: new Date().toISOString(),
       finalizedAt: null,
       finalizationDate: raffleData.finalizationDate || null,
+      activityHistory: [{
+        id: `act-${Date.now()}`,
+        action: 'raffle_created',
+        timestamp: new Date().toISOString(),
+        userId: ownerId,
+        details: { message: 'Rifa creada exitosamente' }
+      }]
     };
+    console.log('[CREATE_RAFFLE_ACTION] Objeto newRaffle a ser guardado en Firestore:', newRaffle);
 
+    console.log('[CREATE_RAFFLE_ACTION] Intentando escribir el documento de la rifa en Firestore...');
     await newRaffleRef.set(newRaffle);
+    console.log('[CREATE_RAFFLE_ACTION] Documento de la rifa escrito exitosamente.');
+    console.log(`[CREATE_RAFFLE_ACTION] LOG_VERIFICACION_SLOTPRICE: Rafa guardada en Firestore. ID: ${raffleId}, slotPrice: ${newRaffle.slotPrice} (tipo: ${typeof newRaffle.slotPrice})`);
 
+    console.log('[CREATE_RAFFLE_ACTION] Creando batch para las 100 casillas...');
     const batch = adminDb.batch();
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 0; i < 100; i++) {
       const slotRef = adminDb.collection('raffles').doc(raffleId).collection('slots').doc(String(i));
       batch.set(slotRef, { slotNumber: i, participantName: '', status: 'available' });
     }
+    console.log('[CREATE_RAFFLE_ACTION] Batch de casillas creado. Intentando commit...');
     await batch.commit();
+    console.log('[CREATE_RAFFLE_ACTION] Commit de casillas exitoso.');
+
+    // Revalidate paths after successful creation
+    try {
+      console.log('[CREATE_RAFFLE_ACTION] Revalidando paths...');
+      revalidatePath('/dashboard', 'page');
+      revalidatePath('/', 'layout');
+      console.log('[CREATE_RAFFLE_ACTION] Paths revalidados.');
+    } catch (revalError) {
+      console.error('[CREATE_RAFFLE_ACTION] ERROR durante la revalidación de paths:', revalError);
+      // Ignore revalidation errors
+    }
+
+    console.log('[CREATE_RAFFLE_ACTION] Acción completada con éxito.');
+    return { 
+      message: 'Rifa creada exitosamente!', 
+      success: true, 
+      raffleId: raffleId 
+    };
   } catch (error) {
-    throw new Error(error instanceof Error ? error.message : 'Error de base de datos: No se pudo crear la rifa.');
+    console.error('[CREATE_RAFFLE_ACTION] ERROR GENERAL en el bloque try/catch:', error);
+    return { 
+      message: error instanceof Error ? error.message : 'Error de base de datos: No se pudo crear la rifa.', 
+      success: false 
+    };
   }
-
-  try {
-    revalidatePath('/dashboard', 'page');
-    revalidatePath('/', 'layout');
-  } catch {
-  }
-
-  redirect(`/raffle/${raffleId}`);
 }
 
 // ... (other actions remain unchanged for now, but would need similar admin SDK treatment if used from server)
 
 const UpdateSlotSchema = z.object({
   raffleId: z.string(),
-  slotNumber: z.coerce.number(),
+  slotNumber: z.coerce.number().int().min(0).max(99, 'El número de casilla debe estar entre 0 y 99.'),
   participantName: z.string(),
   status: z.enum(['available', 'reserved', 'paid']),
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
@@ -240,11 +324,31 @@ export async function updateSlotAction(_prevState: unknown, formData: FormData):
       return { message: 'No tienes permisos para editar esta casilla.', success: false };
     }
 
+    // Get current slot data to determine previous status
     const slotRef = adminDb.collection('raffles').doc(raffleId).collection('slots').doc(String(slotNumber));
+    const slotDoc = await slotRef.get();
+    const previousStatus = slotDoc.exists ? slotDoc.data()?.status : 'available';
+
     await slotRef.update({ 
       participantName: participantName || null,
       status,
       updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    // Add activity log
+    const activityId = `act-${Date.now()}`;
+    const activityRef = adminDb.collection('raffles').doc(raffleId).collection('activity').doc(activityId);
+    await activityRef.set({
+      id: activityId,
+      action: 'slot_updated',
+      timestamp: new Date().toISOString(),
+      userId: ownerId,
+      details: {
+        slotNumber: slotNumber,
+        previousStatus: previousStatus,
+        newStatus: status,
+        message: `Casilla ${slotNumber} actualizada de ${previousStatus} a ${status}`
+      }
     });
 
     revalidatePath(`/raffle/${raffleId}`);
@@ -323,7 +427,7 @@ export async function updateRaffleAction(_prevState: unknown, formData: FormData
 
 const FinalizeRaffleWithWinnerSchema = z.object({
   raffleId: z.string().min(1, 'El ID de la rifa es obligatorio.'),
-  winnerSlotNumber: z.coerce.number().int().min(1).max(100, 'El número de casilla debe estar entre 1 y 100.'),
+  winnerSlotNumber: z.coerce.number().int().min(0).max(99, 'El número de casilla debe estar entre 0 y 99.'),
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
@@ -380,10 +484,25 @@ export async function finalizeRaffleWithWinnerAction(_prevState: unknown, formDa
       return { message: 'Esta rifa no tiene una fecha de finalización programada.', success: false };
     }
 
+    // Update the raffle document
     await raffleRef.update({
       status: 'finalized',
       winnerSlotNumber: winnerSlotNumber,
       finalizedAt: new Date().toISOString(),
+    });
+
+    // Add activity log for raffle finalization
+    const activityId = `act-${Date.now()}`;
+    const activityRef = adminDb.collection('raffles').doc(raffleId).collection('activity').doc(activityId);
+    await activityRef.set({
+      id: activityId,
+      action: 'raffle_finalized',
+      timestamp: new Date().toISOString(),
+      userId: ownerId,
+      details: {
+        winnerSlotNumber: winnerSlotNumber,
+        message: `Rifa finalizada. Casilla ganadora: ${winnerSlotNumber}`
+      }
     });
 
     revalidatePath(`/raffle/${raffleId}`);

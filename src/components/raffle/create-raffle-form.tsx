@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState, useEffect } from 'react';
 import { generateDetailsAction, createRaffleAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -11,19 +10,33 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/context/auth-context';
-import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Loader2, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
-function GenerationSubmitButton() {
-  const { pending } = useFormStatus();
+// Define the types for the action states
+type GenerateState = {
+  name?: string;
+  description?: string;
+  terms?: string;
+  message?: string | null;
+  errors?: Record<string, string[] | undefined> | undefined;
+};
 
+type CreateState = {
+  message: string | null;
+  success?: boolean;
+  raffleId?: string;
+};
+
+function GenerationSubmitButton({ isGenerating }: { isGenerating: boolean }) {
   return (
-    <Button type="submit" disabled={pending} className="w-full md:w-auto">
-      {pending ? (
+    <Button type="submit" disabled={isGenerating} className="w-full md:w-auto">
+      {isGenerating ? (
         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...</>
       ) : (
         'Generar con IA'
@@ -32,12 +45,10 @@ function GenerationSubmitButton() {
   );
 }
 
-function RaffleSubmitButton() {
-  const { pending } = useFormStatus();
-
+function RaffleSubmitButton({ isCreating }: { isCreating: boolean }) {
   return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? (
+    <Button type="submit" disabled={isCreating} className="w-full">
+      {isCreating ? (
         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando Rifa...</>
       ) : (
         'Crear Rifa'
@@ -48,19 +59,18 @@ function RaffleSubmitButton() {
 
 export function CreateRaffleForm() {
   const { user, loading: authLoading } = useAuth();
-  const [generateState, generateDispatch] = useActionState(generateDetailsAction, { message: null });
+  const { toast } = useToast();
+  const router = useRouter();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [terms, setTerms] = useState('');
+  const [slotPrice, setSlotPrice] = useState<number>(1000); // Default value
   const [finalizationDate, setFinalizationDate] = useState<Date | undefined>();
   const [idToken, setIdToken] = useState('');
-
-  useEffect(() => {
-    if (generateState.name) setName(generateState.name);
-    if (generateState.description) setDescription(generateState.description);
-    if (generateState.terms) setTerms(generateState.terms);
-  }, [generateState]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [generateErrors, setGenerateErrors] = useState<Record<string, string[] | undefined> | undefined>();
 
   useEffect(() => {
     if (user) {
@@ -68,12 +78,70 @@ export function CreateRaffleForm() {
     }
   }, [user]);
 
+  const handleGenerateSubmit = async (formData: FormData) => {
+    setIsGenerating(true);
+    setGenerateErrors(undefined);
+    try {
+      const result: GenerateState = await generateDetailsAction({ message: null }, formData);
+      if (result.name) setName(result.name);
+      if (result.description) setDescription(result.description);
+      if (result.terms) setTerms(result.terms);
+      if (result.errors) {
+        setGenerateErrors(result.errors);
+      }
+    } catch {
+      toast({
+        title: 'Error de IA',
+        description: 'No se pudo generar el contenido.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCreateSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsCreating(true);
+    const formData = new FormData(event.currentTarget);
+    
+    try {
+      const result: CreateState = await createRaffleAction({ message: null }, formData);
+
+      if (result.success && result.message) {
+        toast({
+          title: 'Rifa creada con éxito',
+          description: result.message,
+          variant: 'success',
+        });
+        if (result.raffleId) {
+          router.push(`/raffle/${result.raffleId}`);
+          router.refresh();
+        }
+      } else if (!result.success && result.message) {
+        toast({
+          title: 'Error al crear rifa',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: 'Error Inesperado',
+        description: 'Ocurrió un error al crear la rifa.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const isFormDisabled = authLoading || !user;
 
   return (
     <div className="grid gap-8 md:grid-cols-1">
       <div className="md:col-span-1">
-        <form action={createRaffleAction} className="space-y-6">
+        <form onSubmit={handleCreateSubmit} className="space-y-6">
           <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
             <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4 flex flex-row items-center justify-between">
               <div>
@@ -95,7 +163,7 @@ export function CreateRaffleForm() {
                       <CardDescription>Describe el premio y la IA creará los textos por ti.</CardDescription>
                     </CardHeader>
                     <CardContent className="pt-4 space-y-4">
-                      <form action={generateDispatch} className="space-y-4">
+                      <form onSubmit={(e) => { e.preventDefault(); handleGenerateSubmit(new FormData(e.currentTarget)); }} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="prompt">¿Qué vas a rifar?</Label>
                           <Textarea
@@ -103,13 +171,13 @@ export function CreateRaffleForm() {
                             name="prompt"
                             placeholder="Ej: Una consola PS5 nueva con dos controles y el juego Spider-Man 2."
                             className="min-h-[100px]"
-                            disabled={isFormDisabled}
+                            disabled={isFormDisabled || isGenerating}
                           />
-                          {generateState.errors?.prompt && (
-                            <p className="text-sm text-red-500">{generateState.errors.prompt.join(', ')}</p>
+                          {generateErrors?.prompt && (
+                            <p className="text-sm text-sage-500">{generateErrors.prompt.join(', ')}</p>
                           )}
                         </div>
-                        <GenerationSubmitButton />
+                        <GenerationSubmitButton isGenerating={isGenerating} />
                       </form>
                     </CardContent>
                   </Card>
@@ -132,7 +200,21 @@ export function CreateRaffleForm() {
                   placeholder="Rifa Increíble de PS5"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isCreating}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slotPrice">Precio de la Casilla (COP)</Label>
+                <Input 
+                  id="slotPrice" 
+                  name="slotPrice" 
+                  type="number"
+                  placeholder="1000"
+                  value={slotPrice}
+                  onChange={(e) => setSlotPrice(Number(e.target.value))}
+                  disabled={isFormDisabled || isCreating}
+                  min="1"
                   required
                 />
               </div>
@@ -145,7 +227,7 @@ export function CreateRaffleForm() {
                   className="min-h-[120px]"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isCreating}
                   required
                 />
               </div>
@@ -158,7 +240,7 @@ export function CreateRaffleForm() {
                   className="min-h-[100px]"
                   value={terms}
                   onChange={(e) => setTerms(e.target.value)}
-                  disabled={isFormDisabled}
+                  disabled={isFormDisabled || isCreating}
                   required
                 />
               </div>
@@ -172,7 +254,7 @@ export function CreateRaffleForm() {
                         'w-full justify-start text-left font-normal',
                         !finalizationDate && 'text-muted-foreground'
                       )}
-                      disabled={isFormDisabled}
+                      disabled={isFormDisabled || isCreating}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {finalizationDate ? format(finalizationDate, 'PPP', { locale: es }) : <span>Seleccionar una fecha</span>}
@@ -194,7 +276,7 @@ export function CreateRaffleForm() {
               </div>
             </CardContent>
           </Card>
-          <RaffleSubmitButton />
+          <RaffleSubmitButton isCreating={isCreating} />
         </form>
       </div>
     </div>

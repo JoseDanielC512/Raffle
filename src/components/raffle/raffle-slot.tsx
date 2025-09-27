@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useAuth } from "@/context/auth-context";
+import { memo } from "react";
 
 type SlotProps = {
   slot: RaffleSlot;
@@ -20,18 +21,18 @@ type SlotProps = {
   highlightedStatus: string | null;
 };
 
-export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdate, highlightedStatus }: SlotProps) {
+const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdate, highlightedStatus }: SlotProps) => {
   const { user } = useAuth();
 
   // Colores mejorados con gradientes sutiles
   const statusClasses = {
-    available: "bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-sm hover:shadow-md transition-colors duration-500", // Verde
-    reserved: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-sm hover:shadow-md transition-colors duration-500", // Amarillo
-    paid: "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-sm hover:shadow-md transition-colors duration-500", // Azul
+    available: "bg-gradient-to-br from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Verde
+    reserved: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Amarillo
+    paid: "bg-gradient-to-br from-ultra_violet-500 to-ultra_violet-600 hover:from-ultra_violet-600 hover:to-ultra_violet-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Azul
   };
 
   const isLoser = isFinalized && !isWinner && slot.status === 'paid';
-  const loserClasses = isLoser ? "bg-gradient-to-br from-gray-400 to-gray-500 text-white opacity-75" : "";
+  const loserClasses = isLoser ? "bg-gradient-to-br from-battleship_gray-400 to-battleship_gray-500 text-battleship_gray-100 opacity-75" : "";
 
   const isEditable = isOwner && !isFinalized;
 
@@ -43,7 +44,7 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
         "relative aspect-square w-full rounded-lg flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 p-1.5 group overflow-visible",
         statusClasses[slot.status],
         loserClasses,
-        isWinner && "min-h-[2rem] animate-winner-pulse bg-gradient-to-br from-amber-400 to-yellow-500 text-yellow-900 ring-2 ring-amber-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
+        isWinner && "min-h-[2rem] animate-winner-pulse bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 ring-2 ring-yellow-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
         isFinalized && !isWinner && slot.status !== 'paid' && "opacity-50 cursor-not-allowed hover:scale-100",
         // Hover específicos por estado
         slot.status === 'available' && isEditable && "hover:scale-110 hover:-translate-y-1",
@@ -65,7 +66,7 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
           tabIndex={-1}
         >
           <Crown 
-            className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-amber-800 drop-shadow-lg shadow-amber-500/50 animate-bounce" 
+            className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-800 drop-shadow-lg shadow-yellow-500/50 animate-bounce" 
             aria-hidden="true"
           />
         </div>
@@ -81,7 +82,7 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
 
       {/* Efecto de brillo para casillas pagadas */}
       {slot.status === 'paid' && !isWinner && (
-        <div className="absolute inset-0 bg-white/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+        <div className="absolute inset-0 bg-battleship_gray-100/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
       )}
     </div>
   );
@@ -111,7 +112,7 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
             {slotComponent}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-white/95 backdrop-blur-sm border-primary/20 shadow-lg">
+        <TooltipContent side="top" className="bg-battleship_gray-100/95 backdrop-blur-sm border-primary/20 shadow-lg">
           <div className="space-y-1">
             <p className="font-semibold text-primary">Casilla #{slot.slotNumber}</p>
             <p className="text-sm">Estado: <span className="font-medium">{status}</span></p>
@@ -120,4 +121,8 @@ export default function Slot({ slot, raffleId, isWinner, isFinalized, isOwner, o
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
+
+Slot.displayName = "RaffleSlot";
+
+export default Slot;

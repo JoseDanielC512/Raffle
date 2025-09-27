@@ -15,16 +15,16 @@ const iconButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:text-secondary-foreground/90",
-        accent: "bg-accent text-accent-foreground hover:bg-primary hover:text-primary-foreground",
+        default: "bg-mountbatten_pink-500 text-mountbatten_pink-100 hover:bg-mountbatten_pink-500/80 hover:text-mountbatten_pink-100/90",
+        accent: "bg-tekhelet-500 text-tekhelet-100 hover:bg-ultra_violet-500 hover:text-ultra_violet-100",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-sage-500 text-sage-100 hover:bg-sage-500/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-battleship_gray-300 bg-battleship_gray-100 hover:bg-tekhelet-500 hover:text-tekhelet-100 dark:border-battleship_gray-700 dark:bg-battleship_gray-900",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-mountbatten_pink-500 text-mountbatten_pink-100 hover:bg-mountbatten_pink-500/80",
+        ghost: "hover:bg-tekhelet-500 hover:text-tekhelet-100",
+        link: "text-ultra_violet-500 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 w-10", // Standard size for icon buttons

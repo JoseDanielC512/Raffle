@@ -178,6 +178,8 @@ export default function PublicRafflePage() {
             open={isInfoDialogOpen}
             onOpenChange={setIsInfoDialogOpen}
             terms={raffle.terms}
+            slotPrice={raffle.slotPrice}
+            ownerName={raffle.ownerName}
             winnerName={winnerSlot?.participantName}
             winnerSlotNumber={raffle.winnerSlotNumber ?? undefined}
             isFinalized={isFinalized}
