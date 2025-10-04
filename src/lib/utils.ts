@@ -32,7 +32,12 @@ export async function triggerSlotConfetti(elementId: string): Promise<void> {
       angle: 90,
       spread: 90,
       origin: { x: centerX, y: centerY },
-      colors: ['#fbbf24', '#f59e0b', '#d97706', '#92400e'], // Dorados y amarillos
+      colors: [
+        '#A4243B',  // Variante de Amaranth Purple (confetti-red)
+        '#5D7CA6',  // Variante de Azul grisáceo (confetti-blue)  
+        '#8B9A46',  // Variante de Verde oliva (confetti-green)
+        '#E6B422'   // Variante de Dorado cálido (confetti-yellow)
+      ],
       disableForReducedMotion: true,
     });
   } else {

@@ -1,63 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 45 20% 94%;
-    --foreground: 40 10% 10%;
-    --card: 41 13% 82%;
-    --card-foreground: 40 10% 10%;
-    --popover: 41 13% 82%;
-    --popover-foreground: 40 10% 10%;
-    --primary: 247 28% 44%;
-    --primary-foreground: 248 29% 9%;
-    --secondary: 277 9% 48%;
-    --secondary-foreground: 276 9% 10%;
-    --muted: 42 11% 33%;
-    --muted-foreground: 41 11% 64%;
-    --accent: 255 49% 41%;
-    --accent-foreground: 256 54% 8%;
-    --destructive: 64 34% 59%;
-    --destructive-foreground: 62 31% 12%;
-    --success: 142 76% 36%;
-    --success-foreground: 38 60% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 311 41% 14%;
-    --info: 199 89% 48%;
-    --info-foreground: 38 60% 98%;
-    --border: 42 11% 33%;
-    --input: 42 11% 33%;
-    --ring: 255 49% 41%;
+    /* 1. Nueva Paleta de Colores Cálida y Terrosa */
+    --acento-fuerte: #A4243B;      /* Amaranth Purple - Acción/Éxito/Ganador */
+    --fondo-base: #D8C99B;          /* Ecru - Fondo principal de todas las páginas */
+    --barra-principal: #D8973C;     /* Butterscotch - Header, Footer y Elementos Estructurales */
+    --acento-calido: #BD632F;       /* Alloy Orange - Reservado/Advertencia */
+    --primario-oscuro-rgb: 39, 62, 71; /* RGB for #273E47 */
+    --primario-oscuro: rgb(var(--primario-oscuro-rgb));     /* Charcoal - Texto de alto contraste */
+
+    /* 2. Colores Especiales para Estados de Casillas (Relacionados con paleta) */
+    --slot-available: #8B9A46;      /* Verde oliva suave - Combina con Ecru y Butterscotch */
+    --slot-paid: #5D7CA6;           /* Azul grisáceo - Combina con Charcoal */
+    --slot-reserved: #C17D4E;       /* Terracota - Combina con Alloy Orange y Butterscotch */
+    --slot-winning: #E6B422;        /* Dorado cálido - Combina con Butterscotch */
+    --slot-losing: #7A6B5D;         /* Gris terroso - Combina con Ecru y Charcoal */
+    
+    /* 3. Colores Semánticos Unificados (compartidos entre Badges y Toasts) */
+    --success: #8B9A46;             /* Verde oliva - Éxito/Completado */
+    --success-foreground: #FFFFFF;
+    --warning: #C17D4E;             /* Terracota - Advertencia/Pendiente */
+    --warning-foreground: #FFFFFF;
+    --error: #B84747;               /* Rojo ladrillo - Error/Fallo */
+    --error-foreground: #FFFFFF;
+    --info: #5D7CA6;                /* Azul grisáceo - Informativo */
+    --info-foreground: #FFFFFF;
+
+    /* 5. Mapeo a Roles Semánticos (shadcn/ui) */
+    --background: var(--fondo-base);           /* Fondo Global (Ecru) */
+    --foreground: var(--primario-oscuro);      /* Texto Principal (Charcoal) */
+    
+    --card: var(--fondo-base);                 /* Fondo de Tarjetas (Ecru) */
+    --card-foreground: var(--primario-oscuro);
+
+    --popover: var(--fondo-base);
+    --popover-foreground: var(--primario-oscuro);
+
+    --primary: var(--acento-fuerte);           /* Acento Fuerte para elementos primarios */
+    --primary-foreground: #FFFFFF;             /* Texto blanco sobre el acento */
+
+    --secondary: var(--acento-calido);         /* Acento Cálido */
+    --secondary-foreground: #FFFFFF;
+
+    --muted: var(--fondo-base);
+    --muted-foreground: var(--primario-oscuro);
+
+    --accent: var(--acento-fuerte);
+    --accent-foreground: #FFFFFF;
+
+    --destructive: var(--error);           /* Rojo estándar para acciones destructivas */
+    --destructive-foreground: #FFFFFF;
+
+    --border: rgb(var(--primario-oscuro-rgb) / 0.2);    /* Borde sutil usando el color oscuro con opacidad */
+    --input: rgb(var(--primario-oscuro-rgb) / 0.2);
+    --ring: var(--acento-fuerte);              /* Anillo de foco en el acento fuerte */
+
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 40 10% 10%;
-    --foreground: 45 20% 94%;
-    --card: 41 13% 22%;
-    --card-foreground: 45 20% 94%;
-    --popover: 41 13% 22%;
-    --popover-foreground: 45 20% 94%;
-    --primary: 247 28% 44%;
-    --primary-foreground: 248 29% 9%;
-    --secondary: 277 9% 48%;
-    --secondary-foreground: 276 9% 10%;
-    --muted: 42 10% 73%;
-    --muted-foreground: 41 12% 44%;
-    --accent: 255 49% 41%;
-    --accent-foreground: 256 54% 8%;
-    --destructive: 64 34% 59%;
-    --destructive-foreground: 62 31% 12%;
-    --success: 142 71% 45%;
-    --success-foreground: 38 60% 98%;
-    --warning: 48 96% 53%;
-    --warning-foreground: 311 41% 14%;
-    --info: 199 98% 58%;
-    --info-foreground: 38 60% 98%;
-    --border: 42 10% 73%;
-    --input: 42 10% 73%;
-    --ring: 255 49% 41%;
+    /* Mapeo para Modo Oscuro (usando la nueva paleta cálida) */
+    --background: #1a1814; /* Versión oscura del Ecru */
+    --foreground: var(--fondo-base); /* Usar Ecru como texto en modo oscuro */
+
+    --card: #2a241e; /* Un tono ligeramente más claro que el fondo oscuro */
+    --card-foreground: var(--fondo-base);
+
+    --popover: #2a241e;
+    --popover-foreground: var(--fondo-base);
+
+    --primary: var(--acento-fuerte); /* Amaranth Purple */
+    --primary-foreground: #FFFFFF;
+
+    --secondary: var(--acento-calido); /* Alloy Orange */
+    --secondary-foreground: #FFFFFF;
+
+    --muted: #2a241e;
+    --muted-foreground: var(--fondo-base);
+
+    --accent: var(--acento-fuerte);
+    --accent-foreground: #FFFFFF;
+
+    --border: rgb(var(--primario-oscuro-rgb) / 0.2);
+    --input: rgb(var(--primario-oscuro-rgb) / 0.2);
+    --ring: var(--acento-fuerte);
   }
 }
 
@@ -66,7 +97,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Montserrat', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
   }
 }
 
@@ -94,5 +129,58 @@
   }
   .animate-pulse-slow {
     animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes flash-update {
+    0% { background-color: var(--slot-winning); }
+    100% { background-color: transparent; }
+  }
+  .animate-flash {
+    animation: flash-update 0.7s ease-out;
+  }
+  
+  @keyframes skeleton-loading {
+    0% {
+      background-color: var(--fondo-base);
+    }
+    50% {
+      background-color: var(--barra-principal);
+    }
+    100% {
+      background-color: var(--fondo-base);
+    }
+  }
+  .animate-skeleton {
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+
+  /* Utilidad para sombras sutiles */
+  .shadow-soft {
+    box-shadow: 0 4px 12px rgba(39, 62, 71, 0.2); /* --primario-oscuro con opacidad */
+  }
+
+  /* Utilidades para gradientes */
+  .bg-gradient-brand {
+    background: linear-gradient(135deg, var(--acento-fuerte) 0%, var(--acento-calido) 100%);
+  }
+  
+  /* Gradientes para páginas de rifa */
+  .bg-gradient-raffle {
+    background: linear-gradient(135deg, var(--fondo-base) 0%, var(--barra-principal) 50%, var(--acento-fuerte) 100%);
+  }
+  
+  .bg-gradient-raffle-reverse {
+    background: linear-gradient(135deg, var(--acento-fuerte) 0%, var(--barra-principal) 50%, var(--fondo-base) 100%);
+  }
+  
+  .bg-gradient-icon {
+    background: linear-gradient(135deg, var(--barra-principal) 0%, var(--acento-calido) 50%, var(--acento-fuerte) 100%);
+  }
+  
+  .bg-gradient-text {
+    background: linear-gradient(135deg, var(--barra-principal) 0%, var(--primario-oscuro) 50%, var(--acento-fuerte) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

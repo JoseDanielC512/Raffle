@@ -44,13 +44,13 @@ export default function RaffleInfoDialog({
           className="flex flex-col h-full"
         >
           {/* Header with gradient background */}
-          <div className="bg-gradient-to-r from-ultra_violet-500/90 via-ultra_violet-500/80 to-tekhelet-500/90 p-6 text-ultra_violet-100">
+          <div className="bg-gradient-to-r from-acento-fuerte/90 via-acento-fuerte/80 to-acento-calido/90 p-6 text-white">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                 <Sparkles className="h-6 w-6" />
                 Detalles de la Rifa
               </DialogTitle>
-              <DialogDescription className="text-ultra_violet-100/80">
+              <DialogDescription className="text-white/80">
                 Toda la información que necesitas saber.
               </DialogDescription>
             </DialogHeader>
@@ -74,21 +74,21 @@ export default function RaffleInfoDialog({
                 <Card className="border-border/60 shadow-sm">
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-battleship_gray-600 dark:text-battleship_gray-400">Casillas totales:</span>
+                      <span className="text-primario-oscuro/70">Casillas totales:</span>
                       <Badge variant="secondary" className="font-mono">100</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-battleship_gray-600 dark:text-battleship_gray-400">Estado:</span>
+                      <span className="text-primario-oscuro/70">Estado:</span>
                       <Badge variant={isFinalized ? "destructive" : "default"}>
                         {isFinalized ? "Finalizada" : "Activa"}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-battleship_gray-600 dark:text-battleship_gray-400">Precio por casilla:</span>
+                      <span className="text-primario-oscuro/70">Precio por casilla:</span>
                       <Badge variant="outline" className="font-mono">{formatCurrencyCOP(slotPrice)}</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-battleship_gray-600 dark:text-battleship_gray-400">Creada por:</span>
+                      <span className="text-primario-oscuro/70">Creada por:</span>
                       <span className="font-medium text-foreground">{ownerName || 'Organizador'}</span>
                     </div>
                   </CardContent>
@@ -100,20 +100,20 @@ export default function RaffleInfoDialog({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                   >
-                    <Card className="border-yellow-200/50 bg-gradient-to-br from-yellow-50/30 to-yellow-100/20 shadow-lg overflow-hidden">
+                    <Card className="border-slot-winning/50 bg-gradient-to-br from-slot-winning/30 to-slot-winning/20 shadow-lg overflow-hidden">
                       <CardContent className="pt-6">
                         <div className="text-center space-y-3">
-                          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full shadow-lg">
-                            <Crown className="h-8 w-8 text-yellow-100" />
+                          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-slot-winning to-slot-winning/80 rounded-full shadow-lg">
+                            <Crown className="h-8 w-8 text-white" />
                           </div>
-                          <h3 className="text-xl font-bold text-yellow-800">¡Tenemos un Ganador!</h3>
-                          <p className="text-yellow-700">
+                          <h3 className="text-xl font-bold text-primario-oscuro">¡Tenemos un Ganador!</h3>
+                          <p className="text-primario-oscuro/80">
                             <span className="font-semibold">Slot Ganador:</span>
-                            <Badge variant="outline" className="ml-2 border-yellow-400 text-yellow-800 font-mono text-lg">
+                            <Badge variant="outline" className="ml-2 border-slot-winning text-primario-oscuro font-mono text-lg">
                               #{winnerSlotNumber}
                             </Badge>
                           </p>
-                          <p className="text-lg font-medium text-yellow-900">
+                          <p className="text-lg font-medium text-primario-oscuro">
                             Ganador: <span className="font-bold">{winnerName}</span>
                           </p>
                         </div>
@@ -127,7 +127,7 @@ export default function RaffleInfoDialog({
                 <Card className="border-border/60 shadow-sm">
                   <CardContent className="pt-6">
                     <ScrollArea className="h-[300px] w-full rounded-md border border-border p-4">
-                      <p className="text-sm text-battleship_gray-600 dark:text-battleship_gray-400 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-sm text-primario-oscuro/70 leading-relaxed whitespace-pre-wrap">
                         {terms}
                       </p>
                     </ScrollArea>

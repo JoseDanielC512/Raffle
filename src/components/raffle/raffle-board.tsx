@@ -38,14 +38,14 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
       className="relative"
     >
       {/* Outer glow effect */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-tekhelet-500/20 via-ultra_violet-500/20 to-ultra_violet-600/20 rounded-3xl blur-xl"></div>
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fondo-base/20 via-transparent to-transparent rounded-3xl blur-2xl"></div>
       
-      <Card className="bg-gradient-to-br from-battleship_gray-100/10 via-battleship_gray-100/5 to-battleship_gray-100/10 backdrop-blur-lg border-battleship_gray-100/20 shadow-2xl rounded-2xl overflow-hidden">
-        <CardHeader className="pb-6 bg-gradient-to-r from-tekhelet-600/20 to-ultra_violet-600/20 border-b border-battleship_gray-100/10">
+      <Card className="bg-gradient-to-br from-fondo-base/60 via-fondo-base/40 to-fondo-base/60 backdrop-blur-xl border shadow-2xl rounded-2xl overflow-hidden">
+        <CardHeader className="pb-6 bg-gradient-to-r from-acento-fuerte/10 to-acento-calido/10 border-b">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex items-center gap-4 flex-wrap">
-              <CardTitle className="text-2xl md:text-3xl font-bold text-battleship_gray-100 drop-shadow-lg">
-                Tablero de Rifas
+              <CardTitle className="text-2xl md:text-3xl font-bold text-primario-oscuro drop-shadow-sm">
+                Tablero de la Rifa
               </CardTitle>
               <motion.div
                 initial={{ scale: 0.8 }}
@@ -53,12 +53,8 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
                 transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
               >
                 <Badge 
-                  variant={raffle.status === 'finalized' ? "destructive" : "default" } 
-                  className={`text-sm font-semibold px-3 py-1 rounded-full shadow-lg ${
-                    raffle.status === 'finalized' 
-                      ? 'bg-sage-500/80 text-battleship_gray-100 border border-sage-400/50'
-                      : 'bg-sage-500/80 text-battleship_gray-100 border border-sage-400/50'
-                  }`}
+                  variant={raffle.status === 'finalized' ? "outline" : "default" } 
+                  className="text-sm font-semibold px-3 py-1 rounded-full shadow-lg"
                 >
                   {raffle.status === 'finalized' ? "Finalizada" : "Activa"}
                 </Badge>
@@ -76,13 +72,13 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
                   tooltip="Ver información de la rifa"
                   tooltipSide="bottom"
                   aria-label="Ver información de la rifa"
-                  className="bg-battleship_gray-100/10 hover:bg-battleship_gray-100/20 text-battleship_gray-100 border-battleship_gray-100/30 shadow-md hover:shadow-lg transition-all duration-300"
+                  variant="ghost"
                 />
               </motion.div>
             )}
           </div>
           <motion.p 
-            className="text-tekhelet-100 text-base md:text-lg font-light drop-shadow"
+            className="text-muted-foreground text-base md:text-lg font-light drop-shadow-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}

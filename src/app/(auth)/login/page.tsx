@@ -128,12 +128,12 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
               <Input id="email" type="email" placeholder="correo@ejemplo.com" {...register('email')} />
-              {errors.email && <p className="text-xs text-sage-500 mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-xs text-acento-calido mt-1">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input id="password" type="password" placeholder="Introduce tu contraseña" {...register('password')} />
-              {errors.password && <p className="text-xs text-sage-500 mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-xs text-acento-calido mt-1">{errors.password.message}</p>}
             </div>
             
             <div className="flex flex-col space-y-2 pt-2">
@@ -141,7 +141,7 @@ export default function LoginPage() {
                 <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(Boolean(checked))} />
                 <Label htmlFor="remember" className="text-sm">Recuérdame</Label>
               </div>
-              <Link href="/forgot-password" className="text-sm underline text-ultra_violet-500">¿Olvidaste tu contraseña?</Link>
+              <Link href="/forgot-password" className="text-sm underline text-acento-fuerte">¿Olvidaste tu contraseña?</Link>
             </div>
 
             <Button type="submit" className="w-full" disabled={isFormSubmitting || authLoading}>
@@ -154,7 +154,7 @@ export default function LoginPage() {
           </form>
         </FormProvider>
         <div className="mt-6 text-center text-sm">
-          ¿No tienes una cuenta? <Link href="/signup" className="underline text-ultra_violet-500">Regístrate</Link>
+          ¿No tienes una cuenta? <Link href="/signup" className="underline text-acento-fuerte">Regístrate</Link>
         </div>
       </CardContent>
     </Card>

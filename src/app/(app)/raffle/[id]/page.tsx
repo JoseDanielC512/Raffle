@@ -21,7 +21,7 @@ import { IconButton } from '@/components/ui/icon-button';
 
 function RafflePageSkeleton() {
   return (
-    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white">
+    <div className="min-h-screen relative overflow-y-auto bg-gradient-raffle text-primario-oscuro">
       {/* Animated CSS Background - Same as public view */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
@@ -261,7 +261,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const isOwner = user?.uid === raffle.ownerId;
 
   return (
-    <div className="min-h-screen relative overflow-y-auto bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 text-white">
+    <div className="min-h-screen relative overflow-y-auto bg-gradient-raffle text-primario-oscuro">
       {/* Animated CSS Background - Same as public view */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
@@ -284,7 +284,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pb-8 border-b border-white/20"
+          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pb-8 border-b border-primario-oscuro/20"
         >
           <div className="flex items-center gap-6 flex-wrap">
             {/* Back Button */}
@@ -294,12 +294,12 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
               tooltip="Volver al Dashboard"
               tooltipSide="bottom"
               aria-label="Volver al dashboard"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
+              className="bg-acento-fuerte/10 hover:bg-acento-fuerte/20 text-primario-oscuro border-acento-fuerte/30 shadow-md hover:shadow-lg transition-all duration-300"
             />
 
             {/* Animated Icon */}
             <motion.div 
-              className="w-20 h-20 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/50 flex-shrink-0"
+              className="w-20 h-20 bg-gradient-icon rounded-2xl flex items-center justify-center shadow-2xl shadow-acento-fuerte/50 flex-shrink-0"
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               whileHover={{ scale: 1.1, rotate: 15, transition: { duration: 0.3 } }}
@@ -315,7 +315,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
             
             <div className="space-y-2 flex-1 min-w-0">
               <motion.h1 
-                className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-white to-pink-300 drop-shadow-lg"
+                className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline bg-gradient-text drop-shadow-lg"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
@@ -323,7 +323,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                 {raffle.name}
               </motion.h1>
               <motion.p 
-                className="text-lg sm:text-xl text-cyan-100 leading-relaxed font-light"
+                className="text-lg sm:text-xl text-primario-oscuro/80 leading-relaxed font-light"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
@@ -348,7 +348,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                 tooltip="Copiar enlace público"
                 tooltipSide="bottom"
                 aria-label="Copiar enlace público"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
+                className="bg-acento-calido/10 hover:bg-acento-calido/20 text-primario-oscuro border-acento-calido/30 shadow-md hover:shadow-lg transition-all duration-300"
               />
 
               {/* Edit Button - Only visible if raffle is not finalized */}
@@ -365,7 +365,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                     tooltip="Editar rifa"
                     tooltipSide="bottom"
                     aria-label="Editar rifa"
-                    className="bg-white/10 hover:bg-white/20 text-white border-white/30 shadow-md hover:shadow-lg transition-all duration-300"
+                    className="bg-acento-fuerte/10 hover:bg-acento-fuerte/20 text-primario-oscuro border-acento-fuerte/30 shadow-md hover:shadow-lg transition-all duration-300"
                   />
                 </EditRaffleDialog>
               )}

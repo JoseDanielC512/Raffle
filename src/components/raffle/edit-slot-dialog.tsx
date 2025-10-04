@@ -144,7 +144,7 @@ export default function EditSlotDialog({ children, slot, raffleId, user, isOwner
                 <DialogClose asChild>
                     <Button 
                       variant="outline" 
-                      className="w-full sm:w-auto mt-4 sm:mt-0 sm:outline sm:outline-1 sm:outline-border bg-tekhelet-500 text-tekhelet-100 hover:bg-tekhelet-500/90"
+                      className="w-full sm:w-auto mt-4 sm:mt-0 sm:outline sm:outline-1 sm:outline-border bg-acento-fuerte text-white hover:bg-acento-fuerte/90"
                     >
                       Cancelar
                     </Button>

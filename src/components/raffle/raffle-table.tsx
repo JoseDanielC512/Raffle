@@ -106,17 +106,17 @@ function FinalizeRaffleMenuItem({ raffle }: { raffle: Raffle }) {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-sage-500">
+            <AlertDialogTitle className="flex items-center gap-2 text-primario-oscuro">
               <AlertTriangle className="h-5 w-5" />
               ¿Estás absolutamente seguro?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-battleship_gray-600 dark:text-battleship_gray-400">
+            <AlertDialogDescription className="text-muted-foreground">
               Esta acción es irreversible. Una vez que declares el ganador, la rifa se
               finalizará permanentemente y no podrás realizar más cambios.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="space-y-2 sm:space-y-0">
-            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0 bg-tekhelet-500 text-tekhelet-100 hover:bg-tekhelet-500/90">
+            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

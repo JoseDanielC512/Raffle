@@ -144,7 +144,7 @@ export default function EditRaffleDialog({
               type="text" // Use text to display formatted currency
               value={formatCurrencyCOP(currentSlotPrice)}
               readOnly
-              className="bg-battleship_gray-300 dark:bg-battleship_gray-700 cursor-not-allowed"
+              className="bg-muted cursor-not-allowed"
             />
           </div>
           
@@ -156,7 +156,7 @@ export default function EditRaffleDialog({
                   variant="outline"
                   className={cn(
                     'w-full pl-3 text-left font-normal',
-                    !selectedDate && 'text-battleship_gray-600 dark:text-battleship_gray-400'
+                    !selectedDate && 'text-primario-oscuro/60'
                   )}
                 >
                   {selectedDate ? (

@@ -15,40 +15,39 @@ type RaffleCardProps = {
 };
 
 export default function RaffleCard({ raffle }: RaffleCardProps) {
-  console.log(`[RAFFLE_CARD_PROPS] Props recibidas en RaffleCard. ID: ${raffle.id}, slotPrice: ${raffle.slotPrice} (tipo: ${typeof raffle.slotPrice}), Props completas:`, raffle);
   const filledSlots = raffle.filledSlots || 0;
   const progress = (filledSlots / 100) * 100;
   const isFinalized = raffle.status === 'finalized' || !!raffle.finalizedAt;
 
   return (
-    <Card className="flex flex-col bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
-      <CardHeader className="bg-battleship_gray-300/30 dark:bg-battleship_gray-700/30 rounded-t-lg border-b border-border/50 pb-4">
+    <Card className="flex flex-col transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+      <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
-            <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">{raffle.name}</CardTitle>
-            <Badge variant={raffle.finalizedAt ? "destructive" : "secondary"} className="text-xs">
-                {raffle.finalizedAt ? "Finalizada" : "Activa"}
+            <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors duration-200 flex items-center gap-2">{raffle.name}</CardTitle>
+            <Badge variant={isFinalized ? "outline" : "default"} className="text-xs">
+                {isFinalized ? "Finalizada" : "Activa"}
             </Badge>
         </div>
-        <CardDescription className="line-clamp-2">{raffle.description}</CardDescription>
+        <CardDescription className="line-clamp-2 pt-1">{raffle.description}</CardDescription>
       </CardHeader>
       <CardContent className="pt-4 flex-grow">
-        <div className="flex justify-between items-center text-sm text-battleship_gray-600 dark:text-battleship_gray-400 mb-2">
+        <div className="flex justify-between items-center text-sm text-muted-foreground mb-2">
             <span>Progreso</span>
             <span>{filledSlots} / 100</span>
         </div>
         <Progress value={progress} aria-label={`${progress}% of slots filled`} className="h-2" />
         {isFinalized && raffle.winnerSlotNumber && (
           <div 
-            className="mt-4 p-3 bg-yellow-50/50 rounded-md space-y-2 border border-yellow-200/50 transition-all duration-300 animate-in fade-in-0 slide-in-from-top-2" 
+            className="mt-4 p-3 bg-slot-winning/10 rounded-md space-y-2 border border-slot-winning/20 transition-all duration-300 animate-in fade-in-0 slide-in-from-top-2" 
             role="region" 
             aria-label="Detalles de rifa finalizada"
           >
-            <p className="font-semibold text-primary flex items-center gap-2 text-sm">
-              <Crown className="h-4 w-4 text-yellow-500" />
-              Slot Ganador: <span className="text-base font-bold text-yellow-700">{raffle.winnerSlotNumber}</span>
+            <p className="font-semibold text-slot-winning flex items-center gap-2 text-sm">
+              <Crown className="h-4 w-4 text-slot-winning" />
+              Slot Ganador: <span className="text-base font-bold">{raffle.winnerSlotNumber}</span>
             </p>
-            <p className="text-sm text-battleship_gray-600 dark:text-battleship_gray-400">
-              Ganador: <span className="font-medium text-primary">{raffle.winnerName || 'No asignado'}</span>
+            <p className="text-sm text-muted-foreground">
+              Ganador: <span className="font-medium text-foreground">{raffle.winnerName || 'No asignado'}</span>
             </p>
           </div>
         )}

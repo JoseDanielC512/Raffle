@@ -71,7 +71,7 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
           >
             <Button 
               variant="destructive" 
-              className="w-full sm:w-auto bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-battleship_gray-100 font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl border border-sage-400/50 transition-all duration-300"
+              className="w-full sm:w-auto font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Flag className="mr-2 h-5 w-5" />
               Finalizar Rifa
@@ -80,17 +80,17 @@ export default function FinalizeRaffleButton({ raffle, isOwner }: FinalizeRaffle
         </AlertDialogTrigger>
         <AlertDialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-sage-500">
+            <AlertDialogTitle className="flex items-center gap-2 text-primario-oscuro">
               <AlertTriangle className="h-5 w-5" />
               ¿Estás absolutamente seguro?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-battleship_gray-600 dark:text-battleship_gray-400">
+            <AlertDialogDescription className="text-muted-foreground">
               Esta acción es irreversible. Una vez que declares el ganador, la rifa se
               finalizará permanentemente y no podrás realizar más cambios.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="space-y-2 sm:space-y-0">
-            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0 bg-tekhelet-500 text-tekhelet-100 hover:bg-tekhelet-500/90">
+            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

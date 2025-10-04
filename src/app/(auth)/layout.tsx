@@ -15,8 +15,8 @@ export default function AuthLayout({
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ultra_violet-500 mx-auto"></div>
-          <p className="mt-4 text-battleship_gray-600 dark:text-battleship_gray-400">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-acento-fuerte mx-auto"></div>
+          <p className="mt-4 text-primario-oscuro/60">Cargando...</p>
         </div>
       </div>
     );

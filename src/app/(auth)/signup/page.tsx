@@ -140,22 +140,22 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre completo</Label>
                 <Input id="name" type="text" placeholder="Tu nombre completo" {...register('name')} />
-                {errors.name && <p className="text-xs text-sage-500 mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-acento-calido mt-1">{errors.name.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electrónico</Label>
                 <Input id="email" type="email" placeholder="correo@ejemplo.com" {...register('email')} />
-                {errors.email && <p className="text-xs text-sage-500 mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-acento-calido mt-1">{errors.email.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Contraseña</Label>
                 <Input id="password" type="password" placeholder="Introduce tu contraseña" {...register('password')} />
-                {errors.password && <p className="text-xs text-sage-500 mt-1">{errors.password.message}</p>}
+                {errors.password && <p className="text-xs text-acento-calido mt-1">{errors.password.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
                 <Input id="confirmPassword" type="password" placeholder="Confirma tu contraseña" {...register('confirmPassword')} />
-                {errors.confirmPassword && <p className="text-xs text-sage-500 mt-1">{errors.confirmPassword.message}</p>}
+                {errors.confirmPassword && <p className="text-xs text-acento-calido mt-1">{errors.confirmPassword.message}</p>}
               </div>
               
               <Controller
@@ -172,13 +172,13 @@ export default function SignupPage() {
                       <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Acepto los <button 
                           type="button" 
-                          className="underline text-ultra_violet-500 hover:cursor-pointer" 
+                          className="underline text-acento-fuerte hover:cursor-pointer" 
                           onClick={() => setShowTerms(true)}
                         >
                           términos y condiciones
                         </button>
                       </label>
-                      {errors.terms && <p className="text-xs text-sage-500 mt-1">{errors.terms.message}</p>}
+                      {errors.terms && <p className="text-xs text-acento-calido mt-1">{errors.terms.message}</p>}
                     </div>
                   </div>
                 )}
@@ -194,7 +194,7 @@ export default function SignupPage() {
             </form>
           </FormProvider>
           <div className="mt-6 text-center text-sm">
-            ¿Ya tienes una cuenta? <Link href="/login" className="underline text-ultra_violet-500">Inicia Sesión</Link>
+            ¿Ya tienes una cuenta? <Link href="/login" className="underline text-acento-fuerte">Inicia Sesión</Link>
           </div>
         </CardContent>
       </Card>

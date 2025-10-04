@@ -174,7 +174,7 @@ export function CreateRaffleForm() {
                             disabled={isFormDisabled || isGenerating}
                           />
                           {generateErrors?.prompt && (
-                            <p className="text-sm text-sage-500">{generateErrors.prompt.join(', ')}</p>
+                            <p className="text-sm text-acento-calido">{generateErrors.prompt.join(', ')}</p>
                           )}
                         </div>
                         <GenerationSubmitButton isGenerating={isGenerating} />
@@ -186,7 +186,7 @@ export function CreateRaffleForm() {
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
               {isFormDisabled && (
-                <p className="text-sm text-center text-yellow-600 bg-yellow-50 p-3 rounded-md">
+                <p className="text-sm text-center text-acento-calido bg-acento-calido/10 p-3 rounded-md border border-acento-calido/30">
                   Debes iniciar sesión para poder crear una rifa.
                 </p>
               )}

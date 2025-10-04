@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
 import { useUnderConstructionContext } from '@/context/under-construction-context';
 
-export function Header() {
+export function Header({ className }: { className?: string }) {
   const [isClient, setIsClient] = useState(false);
   const { user, loading, isLoggingOut, logout, authStatus } = useAuth();
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export function Header() {
   const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b bg-battleship_gray-100/95 backdrop-blur supports-[backdrop-filter]:bg-battleship_gray-100/60 px-4 sm:px-6 lg:px-8 ${isAuthPage ? 'hidden' : ''} dark:bg-battleship_gray-900/95 dark:supports-[backdrop-filter]:bg-battleship_gray-900/60`}>
+    <header className={`sticky top-0 z-50 w-full border-b bg-barra-principal px-4 sm:px-6 lg:px-8 shadow-md ${isAuthPage ? 'hidden' : ''} ${className || ''}`}>
       <div className="flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-6">
@@ -70,13 +70,13 @@ export function Header() {
             <>
               {loading && (
                 <div className="h-9 w-9 flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-battleship_gray-600 dark:text-battleship_gray-400" />
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 </div>
               )}
               {!loading && user && (
-                <DropdownMenu>
+                  <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="text-primario-oscuro hover:bg-acento-fuerte hover:text-white transition-colors">
                       <CircleUser className="h-5 w-5" />
                       <span className="sr-only">Menú de usuario</span>
                     </Button>
@@ -85,7 +85,7 @@ export function Header() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{user.displayName || 'Usuario'}</p>
-                        <p className="text-xs leading-none text-battleship_gray-600 dark:text-battleship_gray-400">
+                        <p className="text-xs leading-none text-muted-foreground">
                           {user.email}
                         </p>
                       </div>
@@ -127,7 +127,7 @@ export function Header() {
                     <DropdownMenuItem 
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="cursor-pointer text-sage-500 focus:bg-sage-500 focus:text-sage-100"
+                      className="cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground"
                     >
                       {isLoggingOut ? (
                         <>
@@ -143,8 +143,12 @@ export function Header() {
               )}
               {!loading && !user && (
                 <div className="flex items-center gap-2">
-                  <a href="/login" className="px-3 py-2 text-sm font-medium text-battleship_gray-600 dark:text-battleship_gray-400 hover:bg-tekhelet-500 hover:text-tekhelet-100 rounded-md">Iniciar Sesión</a>
-                  <a href="/signup" className="px-3 py-2 text-sm font-medium bg-ultra_violet-500 text-ultra_violet-100 hover:bg-ultra_violet-500/90 rounded-md">Regístrate</a>
+                  <Button variant="ghost" size="sm" asChild className="px-3 py-2">
+                    <Link href="/login">Iniciar Sesión</Link>
+                  </Button>
+                  <Button variant="default" size="sm" asChild>
+                    <Link href="/signup">Regístrate</Link>
+                  </Button>
                 </div>
               )}
             </>

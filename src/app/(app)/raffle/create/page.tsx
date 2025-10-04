@@ -21,7 +21,7 @@ export default function CreateRafflePage() {
         />
         <div>
           <h1 className="text-3xl font-bold font-headline">Crear una Nueva Rifa</h1>
-          <p className="text-battleship_gray-600 dark:text-battleship_gray-400">
+          <p className="text-primario-oscuro/60">
             Describe tu premio y deja que nuestra IA te ayude con los detalles.
           </p>
         </div>

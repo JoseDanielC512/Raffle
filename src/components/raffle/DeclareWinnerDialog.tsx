@@ -87,7 +87,7 @@ export default function DeclareWinnerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-yellow-600">
+          <DialogTitle className="flex items-center gap-2 text-slot-winning">
             <Trophy className="h-5 w-5" />
             Declarar Ganador
           </DialogTitle>

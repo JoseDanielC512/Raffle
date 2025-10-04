@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PlusCircle, DollarSign, Ticket, Trophy, ListChecks } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
@@ -55,7 +56,7 @@ export default function Dashboard() {
       });
       setRafflesData(fetchedRaffles);
       setDataLoading(false);
-    }, (error) => {
+    }, () => {
       // console.error("Error listening to raffles: ", error); // Removed for production
       toast({ title: "Error al Cargar Datos", description: "No se pudieron cargar los datos del dashboard.", variant: "destructive" });
       setDataLoading(false);
@@ -133,9 +134,9 @@ export default function Dashboard() {
           ) : raffles.length > 0 ? (
             <RaffleTable raffles={raffles} />
           ) : (
-            <div className="text-center py-16 md:py-24 border-2 border-dashed border-battleship_gray-300 dark:border-battleship_gray-700 rounded-xl">
-              <h2 className="text-2xl font-semibold text-battleship_gray-900 dark:text-battleship_gray-100 mb-4">¡Aún no hay rifas!</h2>
-              <p className="text-battleship_gray-600 dark:text-battleship_gray-400 mb-8 max-w-md mx-auto">
+            <div className="text-center py-16 md:py-24 bg-card border-2 border-dashed border-border rounded-xl shadow-soft">
+              <h2 className="text-2xl font-semibold text-secondary mb-4">¡Aún no hay rifas!</h2>
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 Comienza tu primera rifa para empezar a vender casillas.
               </p>
               {stats.canCreateRaffle && (
@@ -149,35 +150,48 @@ export default function Dashboard() {
           )}
         </div>
 
-        <aside className="lg:col-span-1 grid grid-cols-2 gap-6">
+        <motion.aside 
+          className="lg:col-span-1 grid grid-cols-2 gap-6"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
+        >
           <StatCard 
             title="Rifas Activas" 
             value={stats.activeRafflesCount} 
             description="de 2 permitidas" 
-            icon={<ListChecks className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
+            icon={<ListChecks className="h-4 w-4 text-muted-foreground" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Rifas Completadas" 
             value={stats.completedRafflesCount} 
-            icon={<Trophy className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
+            icon={<Trophy className="h-4 w-4 text-muted-foreground" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Casillas Vendidas" 
             value={stats.totalSoldSlots} 
             description="en todas tus rifas" 
-            icon={<Ticket className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
+            icon={<Ticket className="h-4 w-4 text-muted-foreground" />} 
             isLoading={isLoading}
           />
           <StatCard 
             title="Ingresos Potenciales" 
             value={formatCurrencyCOP(stats.potentialRevenue)} 
             description="basado en casillas vendidas" 
-            icon={<DollarSign className="h-4 w-4 text-battleship_gray-600 dark:text-battleship_gray-400" />} 
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} 
             isLoading={isLoading}
           />
-        </aside>
+        </motion.aside>
       </div>
     </div>
   );

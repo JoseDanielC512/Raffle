@@ -24,15 +24,14 @@ type SlotProps = {
 const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdate, highlightedStatus }: SlotProps) => {
   const { user } = useAuth();
 
-  // Colores mejorados con gradientes sutiles
   const statusClasses = {
-    available: "bg-gradient-to-br from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Verde
-    reserved: "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Amarillo
-    paid: "bg-gradient-to-br from-ultra_violet-500 to-ultra_violet-600 hover:from-ultra_violet-600 hover:to-ultra_violet-700 text-battleship_gray-100 shadow-sm hover:shadow-md transition-colors duration-500", // Azul
+    available: "bg-gradient-to-br from-slot-available to-slot-available/70 text-primario-oscuro shadow-sm hover:shadow-md transition-all duration-300",
+    reserved: "bg-gradient-to-br from-slot-reserved to-slot-reserved/80 text-white shadow-sm hover:shadow-md transition-all duration-300",
+    paid: "bg-gradient-to-br from-slot-paid to-slot-paid/80 text-white shadow-sm hover:shadow-md transition-all duration-300",
   };
 
   const isLoser = isFinalized && !isWinner && slot.status === 'paid';
-  const loserClasses = isLoser ? "bg-gradient-to-br from-battleship_gray-400 to-battleship_gray-500 text-battleship_gray-100 opacity-75" : "";
+  const loserClasses = isLoser ? "bg-gradient-to-br from-slot-losing to-slot-losing/60 text-primario-oscuro shadow-sm" : "";
 
   const isEditable = isOwner && !isFinalized;
 
@@ -44,15 +43,11 @@ const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdat
         "relative aspect-square w-full rounded-lg flex flex-col items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 p-1.5 group overflow-visible",
         statusClasses[slot.status],
         loserClasses,
-        isWinner && "min-h-[2rem] animate-winner-pulse bg-gradient-to-br from-yellow-400 to-yellow-500 text-yellow-900 ring-2 ring-yellow-500 ring-offset-2 ring-offset-background shadow-lg", // Dorado
+        isWinner && "min-h-[2rem] animate-winner-pulse bg-gradient-to-br from-slot-winning to-slot-winning/80 text-primario-oscuro ring-4 ring-slot-winning ring-offset-2 ring-offset-background shadow-xl",
         isFinalized && !isWinner && slot.status !== 'paid' && "opacity-50 cursor-not-allowed hover:scale-100",
-        // Hover específicos por estado
-        slot.status === 'available' && isEditable && "hover:scale-110 hover:-translate-y-1",
-        slot.status === 'reserved' && isEditable && "hover:animate-shake",
-        slot.status === 'paid' && isEditable && "hover:-translate-y-1.5",
+        isEditable && "hover:scale-110 hover:-translate-y-1",
         !isEditable && "cursor-default",
-        // Efecto de resaltado
-        isHighlighted && "border border-[0.5px] border-primary ring-4 ring-muted scale-105 shadow-xl"
+        isHighlighted && "ring-2 ring-offset-2 ring-acento-fuerte scale-105 shadow-xl"
       )}
     >
       {isWinner ? (
@@ -61,12 +56,18 @@ const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdat
           onClick={async () => {
             await triggerSlotConfetti(`slot-${slot.slotNumber}`);
           }}
-          role="img"
-          aria-label="Casilla ganadora con coronita"
-          tabIndex={-1}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              triggerSlotConfetti(`slot-${slot.slotNumber}`);
+            }
+          }}
+          role="button"
+          aria-label="Casilla ganadora - Presiona Enter o Espacio para confetti"
+          tabIndex={0}
         >
           <Crown 
-            className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-yellow-800 drop-shadow-lg shadow-yellow-500/50 animate-bounce" 
+            className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primario-oscuro drop-shadow-lg animate-bounce" 
             aria-hidden="true"
           />
         </div>
@@ -82,7 +83,7 @@ const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdat
 
       {/* Efecto de brillo para casillas pagadas */}
       {slot.status === 'paid' && !isWinner && (
-        <div className="absolute inset-0 bg-battleship_gray-100/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+        <div className="absolute inset-0 bg-white/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
       )}
     </div>
   );
@@ -108,13 +109,13 @@ const Slot = memo(({ slot, raffleId, isWinner, isFinalized, isOwner, onSlotUpdat
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="relative">
+          <div className="relative" aria-describedby={`tooltip-${slot.slotNumber}`}>
             {slotComponent}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-battleship_gray-100/95 backdrop-blur-sm border-primary/20 shadow-lg">
-          <div className="space-y-1">
-            <p className="font-semibold text-primary">Casilla #{slot.slotNumber}</p>
+        <TooltipContent side="top" id={`tooltip-${slot.slotNumber}`} className="bg-primario-oscuro text-white border-acento-fuerte/50 shadow-lg">
+          <div className="space-y-1 p-1">
+            <p className="font-semibold text-white">Casilla #{slot.slotNumber}</p>
             <p className="text-sm">Estado: <span className="font-medium">{status}</span></p>
           </div>
         </TooltipContent>
