@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
+import { Header } from "@/components/layout/header";
 import RaffleCard from "@/components/raffle/raffle-card";
 import RaffleBoard from "@/components/raffle/raffle-board";
 import { Raffle } from "@/lib/definitions";
@@ -84,6 +85,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header />
       {/* Hero Section */}
       <motion.section 
         className="relative w-full overflow-hidden bg-gradient-to-br from-acento-fuerte via-acento-calido to-barra-principal py-16 md:py-24 lg:py-32"

@@ -1,60 +1,116 @@
-#### **Personalidad y Habilidades del Agente de Codificación**
+# Project: Lucky 100 Raffle (Improved Context)
 
-El agente de codificación se identificará como un **Ingeniero de Frontend Principal**. Su personalidad será **precisa, metódica y obsesionada con las buenas prácticas**. Actuará como un mentor, explicando sus decisiones técnicas y sugiriendo mejoras.
+## 1. Project Overview
 
-**Skills y Patrones de Codificación:**
+Lucky 100 Raffle is a modern, full-stack web application built with Next.js (App Router) and TypeScript, enabling users to create, manage, and join 100-slot raffles with real-time interactivity. It uses a serverless backend via Firebase for authentication, data storage, and secure mutations, while integrating Google's Genkit AI for generating raffle content from user prompts. The design prioritizes secure, live updates across users, responsive UI, and atomic operations for fairness.
 
-* **React y Next.js:** El agente debe tener un dominio profundo de **React Hooks** y **componentes funcionales**. Utilizará las convenciones de enrutamiento y renderizado de **Next.js**.
-* **Composición y Reutilización:** Priorizará la creación de **componentes pequeños y reutilizables**. Evitará la duplicación de código y utilizará la **composición de componentes** para construir interfaces complejas.
-* **Gestión de Estado:** Implementará la lógica de estado a nivel de componente con `useState` y `useEffect`. Para estados globales (como el de autenticación), utilizará el **Context API de React** o una librería de gestión de estado si es necesario.
-* **Buenas Prácticas de UI/UX:** Utilizará los componentes de la librería **Radix UI** y las utilidades de **Tailwind CSS** para construir la interfaz. Garantizará que la UI sea **accesible (ARIA)** y que las transiciones y animaciones sean fluidas.
-* **Interacción con Firebase:** El agente utilizará el **SDK de Firebase para JavaScript** directamente en los componentes y _custom hooks_. Implementará **listeners en tiempo real** de Firestore cuando sea necesario (por ejemplo, para el tablero de rifas).
-enciará el uso de transacciones de Firestore para operaciones que requieran atomicidad.
-* **Seguridad:** Toda la lógica sensible (autenticación, escritura en la base de datos) debe estar protegida. El agente debe asumir que el backend de Firebase tiene las reglas de seguridad correctamente configuradas y debe usar los métodos del SDK de Firebase que respeten esas reglas.
+### Core Features (Requirements Perspective)
+- Real-time 100-slot raffle boards with interactive participation.
+- User authentication/authorization for organizers and participants.
+- Live synchronization of slot status (available, paid, reserved, winning, losing) via Firestore listeners.
+- AI-generated raffle names, descriptions, and terms based on prize inputs.
+- Secure random winner selection with Firestore transactions.
+- Dashboard with analytics (e.g., participation metrics, revenue tracking).
+- Responsive, accessible UI with animations and color-coded visuals.
+- Form validation and error handling for robust user input.
 
----
+## 2. Key Technologies & Stack
 
-### **Requerimientos Funcionales del MVP**
+- **Framework**: Next.js 14+ (App Router).
+- **Language**: TypeScript.
+- **Backend (Serverless)**: Firebase.
+  - **Authentication**: Firebase Authentication.
+  - **Database**: Firestore with real-time listeners and transactions.
+  - **Admin SDK**: `firebase-admin` for server-side security.
+- **Styling**: Tailwind CSS with custom warm/terrestrial palette.
+- **UI Components**: shadcn/ui, Radix UI primitives; Framer Motion for animations.
+- **AI**: Genkit (`@genkit-ai/googleai`) with Gemini-1.5-flash model.
+- **Forms**: React Hook Form + Zod for validation.
+- **State Management**: React Context (e.g., AuthProvider) and hooks.
+- **Other Libraries**: Lucide-react (icons), network utilities as needed.
 
-A continuación se detallan los requerimientos para el frontend, organizados por flujos de usuario. El agente debe seguir esta lista como una guía para el desarrollo.
+## 3. Project Structure
 
-#### **1. Flujo de Autenticación**
+The structure follows Next.js conventions with clear separation for scalability:
 
-* **Páginas Públicas:** Crear las vistas para las rutas `/` (página de inicio), `/login` y `/register`.
-* **Formularios:** Construir formularios de registro y login con validación utilizando `react-hook-form` y `zod`.
-* **Comunicación con Firebase:** Conectar los formularios a los métodos `createUserWithEmailAndPassword` y `signInWithEmailAndPassword` del SDK de Firebase.
-* **Gestión de Sesión:** Implementar un **Context Provider** para el estado de autenticación. Este proveedor debe escuchar los cambios del usuario con `onAuthStateChanged` y proporcionar el objeto de usuario a toda la aplicación.
-* **Redirección:** Si el usuario no está autenticado, redirigirlo a `/login` al intentar acceder a rutas protegidas. Si el usuario está autenticado, redirigirlo a `/dashboard` al intentar acceder a `/login` o `/register`.
+```
+src/
+├── app/                    # Routes, layouts, and Server Actions
+│   ├── (app)/             # Authenticated routes (dashboard, raffle/[id])
+│   ├── (auth)/            # Login/signup routes
+│   ├── actions.ts         # Server Actions for mutations
+│   └── api/               # Optional API endpoints
+├── components/            # Reusable components
+│   ├── ui/                # Base shadcn/Radix components
+│   ├── layout/            # Headers, footers, modals
+│   ├── dashboard/         # Analytics and overview components
+│   └── raffle/            # Board, slots, and management UI
+├── lib/                   # Core utilities and configs
+│   ├── firebase.ts        # Client-side Firebase SDK init
+│   ├── firebase-admin.ts  # Server-side Admin SDK init
+│   ├── firestore.ts       # Read/write functions for Firestore
+│   ├── utils.ts           # General helpers (e.g., token verification)
+│   └── definitions.ts     # Type defs (Raffle, RaffleSlot models)
+├── context/               # Global state (auth-context.tsx)
+├── ai/                    # Genkit AI setup
+│   ├── flows/             # AI flows (generate-raffle-details.ts)
+│   ├── dev.ts             # Local AI dev server
+│   └── genkit.ts          # Genkit config and prompts
+├── types/                 # Additional TypeScript types
+└── public/                # Static assets (images, icons)
+```
 
-#### **2. Flujo del Organizador (Dashboard)**
+## 4. Key Configuration Files
 
-* **Ruta:** La ruta principal para los usuarios autenticados será `/dashboard`.
-* **Métricas:** El tablero debe mostrar un resumen analítico con el número de rifas activas y el total de casillas vendidas.
-* **Creación de Rifas:** Implementar un botón/modal para crear una nueva rifa. El formulario debe pedir el nombre y la descripción de la rifa. Antes de guardar en Firestore, la aplicación debe verificar el límite de **dos rifas activas**.
-* **Listado de Rifas:** Mostrar una lista de las rifas creadas por el usuario autenticado. Cada elemento de la lista debe incluir el nombre, estado, y un enlace a la página de la rifa.
-* **Límite de Rifas:** Al intentar crear una tercera rifa, mostrar una notificación de error (`react-toast`) informando al usuario que ha alcanzado el límite.
+- `next.config.ts`: Image optimization, remote patterns for Firebase storage.
+- `tailwind.config.ts`: Custom colors, themes, and plugins.
+- `tsconfig.json`: Path aliases (@/* → src/*), strict typing.
+- `firebase.json`: Hosting rewrites, Firestore rules for security.
+- `package.json`: Dependencies/scripts; includes ESLint, TypeScript configs.
 
-#### **3. Flujo del Tablero de Rifas**
+## 5. Environment Variables
 
-* **Ruta Pública:** La ruta para ver una rifa será `/raffle/[raffleId]`.
-* **Lógica de Renderizado:** La vista debe obtener los datos del documento de rifa y de su subcolección `slots` desde Firestore.
-* **Visualización de Casillas:** Renderizar las 100 casillas en un _grid_ o _flexbox_. El color de cada casilla debe reflejar su estado (`available` -> Verde, `reserved` -> Amarillo, `paid` -> Azul, `winning` -> Dorado, `losing` -> Gris). El nombre del participante debe mostrarse en las casillas `paid`.
-* **Actualizaciones en Tiempo Real:** Utilizar **listeners de Firestore (`onSnapshot`)** para que el tablero se actualice de forma instantánea cuando un slot es modificado por el organizador.
+Create `.env.local` with these for Firebase integration:
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- Server-side Admin SDK credentials (e.g., service account JSON).
 
-#### **4. Flujo de Gestión Manual y Finalización**
+## 6. Building, Running, and Development Commands
 
-* **Edición de Casillas:** En el tablero, solo si el usuario es el `ownerUid` de la rifa, las casillas deben ser clickeables. Al hacer clic, se debe mostrar un modal para cambiar el `slotStatus` y el `name`.
-* **Botón de Finalizar:** Si el usuario es el dueño y la rifa está `active`, mostrar un botón "Finalizar Rifa". Al hacer clic, se debe solicitar el número ganador.
-* **Redirección:** La página de la rifa finalizada debe ser de **solo lectura**.
+- **Install**: `npm install`
+- **Dev Mode**: `npm run dev` (Next.js on http://localhost:9002 with Turbopack).
+- **AI Dev**: `npm run genkit:dev` (Local AI testing); `npm run genkit:watch` (With file watching).
+- **Build/Prod**: `npm run build` then `npm run start`.
+- **Lint/Typecheck**: `npm run lint` (ESLint); `npm run typecheck` (TypeScript).
 
----
+## 7. Color Palette (UI Requirements)
 
-### **Requerimientos No Funcionales**
+Warm/terrestrial scheme for visual clarity:
+- Accent: #A4243B (strong red).
+- Background: #D8C99B (light earth).
+- Toolbar: #D8973C (warm gold).
+- Other: #BD632F (orange), #273E47 (dark blue).
+- Slots: Available (#8B9A46 green), Paid (#5D7CA6 blue), Reserved (#C17D4E orange), Winning (#E6B422 yellow), Losing (#7A6B5D gray).
 
-Estos requerimientos son cruciales para un producto listo para producción y deben ser integrados en todos los procesos de codificación.
+## 8. Architecture & Flows (Context/Prompts Engineering)
 
-* **Rendimiento:** La carga inicial del tablero de 100 casillas debe ser rápida. Se deben optimizar las llamadas a la base de datos para minimizar el número de lecturas.
-* **Manejo de Errores:** Implementar un sistema de notificaciones (`react-toast`) para comunicar errores y éxitos al usuario de manera clara.
-* **Seguridad:** Asumir que las reglas de seguridad de Firestore protegen el backend. El agente debe usar las reglas de autenticación del SDK para controlar el acceso a la interfaz de usuario. No se deben permitir acciones de escritura o borrado si el usuario no tiene los permisos adecuados.
-* **Validación de Datos:** Toda la entrada de usuario debe ser validada en el frontend usando `zod` para garantizar la integridad de los datos antes de enviarlos a Firebase.
-* **Experiencia de Usuario:** La interfaz debe ser **responsive** y funcionar sin problemas en dispositivos móviles. Utilizar animaciones y transiciones sutiles para una experiencia fluida.
+### Data & Authentication Flow (Guided Steps)
+1. **Auth Setup**: `AuthProvider` in `auth-context.tsx` uses `onAuthStateChanged` for session state. Client gets `idToken` for secure calls.
+2. **Read Operations**: Client components (e.g., raffle page) use `onSnapshot` for real-time Firestore subscriptions, updating UI instantly.
+3. **Write Operations**: Form submits to Server Action in `actions.ts`, sending `idToken` and data.
+4. **Server Verification**: Action verifies `idToken` via `firebase-admin.verifyIdToken()`, authorizing user.
+5. **Mutation Execution**: Use `getAdminDb()` for Firestore writes/transactions (e.g., slot updates, winner selection).
+6. **Cache/Revalidation**: Call `revalidatePath()` to refresh Next.js cache.
+7. **Error Handling**: Zod validates inputs; Firestore rules enforce access.
+
+### AI Integration (Prompts Engineering)
+In `generate-raffle-details.ts`:
+- Define prompt with `ai.definePrompt`: Takes user prize description; instructs Gemini to output JSON {name, description, terms}.
+- Wrap in `generateRaffleDetailsFlow` for reusable calls from Server Actions.
+- Enables prompt-based generation: E.g., "Input: Luxury watch → Output: Structured raffle details."
+
+This architecture ensures secure, real-time ops while providing clear prompts for AI and requirements for features, facilitating codebase extension or debugging.

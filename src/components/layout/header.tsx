@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
 import { useUnderConstructionContext } from '@/context/under-construction-context';
 
-export function Header({ className }: { className?: string }) {
+export function Header({ className, showAuthButtons = true }: { className?: string; showAuthButtons?: boolean }) {
   const [isClient, setIsClient] = useState(false);
   const { user, loading, isLoggingOut, logout, authStatus } = useAuth();
   const pathname = usePathname();
@@ -45,11 +45,8 @@ export function Header({ className }: { className?: string }) {
     }
   };
   
-  // Hide header on auth pages
-  const isAuthPage = ['/login', '/signup', '/forgot-password'].includes(pathname);
-
   return (
-    <header className={`sticky top-0 z-50 w-full border-b bg-barra-principal px-4 sm:px-6 lg:px-8 shadow-md ${isAuthPage ? 'hidden' : ''} ${className || ''}`}>
+    <header className={`sticky top-0 z-50 w-full border-b bg-barra-principal px-4 sm:px-6 lg:px-8 shadow-md ${className || ''}`}>
       <div className="flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-6">
@@ -141,7 +138,7 @@ export function Header({ className }: { className?: string }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              {!loading && !user && (
+              {!loading && !user && showAuthButtons && (
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" asChild className="px-3 py-2">
                     <Link href="/login">Iniciar Sesión</Link>

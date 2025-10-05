@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
+import { Header } from '@/components/layout/header';
 
 export default function AuthLayout({
   children,
@@ -24,8 +25,11 @@ export default function AuthLayout({
 
   // Render the login/signup forms only if the user is unauthenticated.
   return (
-    <main className="flex items-center justify-center h-screen p-4">
-      {children}
-    </main>
+    <div className="min-h-screen flex flex-col auth-pattern-bg">
+      <Header showAuthButtons={false} />
+      <main className="flex items-center justify-center flex-1 p-4 auth-pattern-content">
+        {children}
+      </main>
+    </div>
   );
 }

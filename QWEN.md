@@ -99,4 +99,18 @@ Warm/terrestrial scheme for visual clarity:
 ## 8. Architecture & Flows (Context/Prompts Engineering)
 
 ### Data & Authentication Flow (Guided Steps)
-1. **Auth Setup**: `AuthProvider` in `auth-context.tsx` uses `onAuthStateChanged` for session state. Client gets
+1. **Auth Setup**: `AuthProvider` in `auth-context.tsx` uses `onAuthStateChanged` for session state. Client gets `idToken` for secure calls.
+2. **Read Operations**: Client components (e.g., raffle page) use `onSnapshot` for real-time Firestore subscriptions, updating UI instantly.
+3. **Write Operations**: Form submits to Server Action in `actions.ts`, sending `idToken` and data.
+4. **Server Verification**: Action verifies `idToken` via `firebase-admin.verifyIdToken()`, authorizing user.
+5. **Mutation Execution**: Use `getAdminDb()` for Firestore writes/transactions (e.g., slot updates, winner selection).
+6. **Cache/Revalidation**: Call `revalidatePath()` to refresh Next.js cache.
+7. **Error Handling**: Zod validates inputs; Firestore rules enforce access.
+
+### AI Integration (Prompts Engineering)
+In `generate-raffle-details.ts`:
+- Define prompt with `ai.definePrompt`: Takes user prize description; instructs Gemini to output JSON {name, description, terms}.
+- Wrap in `generateRaffleDetailsFlow` for reusable calls from Server Actions.
+- Enables prompt-based generation: E.g., "Input: Luxury watch → Output: Structured raffle details."
+
+This architecture ensures secure, real-time ops while providing clear prompts for AI and requirements for features, facilitating codebase extension or debugging.

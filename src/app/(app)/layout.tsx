@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
+import { Header } from "@/components/layout/header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { authStatus, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     // For all other authenticated pages (like the dashboard), use the standard layout with padding.
     return (
       <div className="flex flex-col w-full h-full">
+        <Header />
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
           {children}
         </main>

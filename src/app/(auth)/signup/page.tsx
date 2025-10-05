@@ -5,6 +5,7 @@ import { Controller, useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -127,6 +128,15 @@ export default function SignupPage() {
     <>
       <Card className="mx-auto w-[400px] bg-card/80 backdrop-blur-sm border-border/60 shadow-lg">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/static/logo.png"
+              alt="Lucky 100 Logo"
+              width={120}
+              height={120}
+              className="h-20 w-auto"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold">
             Crea Tu Cuenta
           </CardTitle>
@@ -140,22 +150,22 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre completo</Label>
                 <Input id="name" type="text" placeholder="Tu nombre completo" {...register('name')} />
-                {errors.name && <p className="text-xs text-acento-calido mt-1">{errors.name.message}</p>}
+                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electrónico</Label>
                 <Input id="email" type="email" placeholder="correo@ejemplo.com" {...register('email')} />
-                {errors.email && <p className="text-xs text-acento-calido mt-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Contraseña</Label>
-                <Input id="password" type="password" placeholder="Introduce tu contraseña" {...register('password')} />
-                {errors.password && <p className="text-xs text-acento-calido mt-1">{errors.password.message}</p>}
+                <Input id="password" type="password" placeholder="Introduce tu contraseña" showPasswordToggle={true} {...register('password')} />
+                {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-                <Input id="confirmPassword" type="password" placeholder="Confirma tu contraseña" {...register('confirmPassword')} />
-                {errors.confirmPassword && <p className="text-xs text-acento-calido mt-1">{errors.confirmPassword.message}</p>}
+                <Input id="confirmPassword" type="password" placeholder="Confirma tu contraseña" showPasswordToggle={true} {...register('confirmPassword')} />
+                {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>}
               </div>
               
               <Controller
@@ -178,7 +188,7 @@ export default function SignupPage() {
                           términos y condiciones
                         </button>
                       </label>
-                      {errors.terms && <p className="text-xs text-acento-calido mt-1">{errors.terms.message}</p>}
+                      {errors.terms && <p className="text-xs text-destructive mt-1">{errors.terms.message}</p>}
                     </div>
                   </div>
                 )}

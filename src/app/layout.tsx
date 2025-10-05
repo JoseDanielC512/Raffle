@@ -19,11 +19,7 @@ export default function RootLayout({
       <body className="bg-fondo-base">
         <LogoutCoordinationProvider>
           <ClientWrapper className="grid grid-rows-[auto_1fr] h-screen">
-            {/* Header - hidden on auth pages */}
-            <Header />
-            <main className="overflow-auto">
-              {children}
-            </main>
+            {children}
           </ClientWrapper>
         </LogoutCoordinationProvider>
       </body>

@@ -1,178 +1,248 @@
-# Plan de Refactor Visual - Lucky 100 Raffle
+# 📋 Progreso de Tareas - Sistema de Recuperación de Contraseña
 
-## Objetivo
-Implementar la nueva paleta de colores cálida y terrosa según las especificaciones del documento `docs/refactor_front.md`, mejorando la experiencia visual sin alterar la lógica funcional existente.
+## 🎯 **Objetivo Principal**
+Solucionar los 4 problemas críticos identificados en el flujo de recuperación de contraseña de Lucky 100 Raffle.
 
-## Paleta de Colores Objetivo
-| Nombre | Código HEX | Rol Principal |
-|--------|------------|---------------|
-| **Acento Fuerte (Amaranth Purple)** | `#A4243B` | Acción/Éxito/Ganador |
-| **Fondo Base (Ecru)** | `#D8C99B` | Fondo principal de todas las páginas |
-| **Barra Principal (Butterscotch)** | `#D8973C` | Header, Footer y Elementos Estructurales |
-| **Acento Cálido (Alloy Orange)** | `#BD632F` | Reservado/Advertencia |
-| **Primario Oscuro (Charcoal)** | `#273E47` | Texto de alto contraste |
+---
 
-### Colores Especiales para Estados (Armonizados con Paleta)
-| Nombre | Código HEX | Uso Específico |
-|--------|------------|----------------|
-| **slot-available** | `#8B9A46` | Verde oliva - Casillas Disponibles |
-| **slot-paid** | `#5D7CA6` | Azul grisáceo - Casillas Pagadas |
-| **slot-reserved** | `#C17D4E` | Terracota - Casillas Reservadas |
-| **slot-winning** | `#E6B422` | Dorado cálido - Casilla Ganadora |
-| **slot-losing** | `#7A6B5D` | Gris terroso - Casillas Perdedoras |
-| **success** | `#8B9A46` | Verde oliva - Estados de éxito (para badges y toasts) |
-| **warning** | `#C17D4E` | Terracota - Estados de advertencia (para badges y toasts) |
-| **info** | `#5D7CA6` | Azul grisáceo - Estados informativos (para badges y toasts) |
-| **error** | `#B84747` | Rojo ladrillo - Estados de error (para badges y toasts) |
+## 📊 **Análisis del Estado Actual**
 
+### **Información del Proyecto Firebase:**
+- **Project ID**: `rifas-online-f2668`
+- **App ID**: `1:617458256173:web:97217a0db61d63a6ce6ba4`
+- **Dominio Firebase**: `rifas-online-f2668.firebaseapp.com`
+- **Entorno actual**: Desarrollo en `localhost:9002`
 
-## Fase 1: Configuración Base de Colores
-- [x] Actualizar variables CSS en `src/app/globals.css` con nueva paleta
-- [x] Configurar nuevas clases de Tailwind en `tailwind.config.ts`
-- [x] Verificar que los colores se apliquen correctamente en variables CSS
-- [x] Agregar colores especiales para estados de casillas y badges
+### **Problemas Identificados:**
 
-## Fase 2: Tipografía y Jerarquía Visual
-- [x] Investigar e implementar fuente Montserrat (recomendada para juegos/rifas)
-- [x] Configurar jerarquía tipográfica según especificaciones
-- [x] Actualizar configuración de fuentes en Tailwind
+| Problema | Severidad | Estado | Descripción |
+|----------|-----------|--------|-------------|
+| 🚨 Correo llega como Spam | Alta | ❌ Pendiente | Dominio `.firebaseapp.com` marcado por filtros |
+| 🌐 Correo en inglés y genérico | Media | ❌ Pendiente | Plantillas por defecto sin personalización |
+| 🔗 Redirección incorrecta | Crítica | ❌ Pendiente | URL apunta a dominio Firebase, no a localhost |
+| ⚠️ Error inapropiado en login | Media | ❌ Pendiente | Mensaje genérico sin contexto específico |
 
-## Fase 3: Estructura Principal (Layout)
-- [x] Actualizar fondo global a `#D8C99B` (Ecru)
-- [x] Modificar header y footer a `#D8973C` (Butterscotch)
-- [x] Ajustar colores de texto en barras de navegación
-- [x] Verificar layout principal en `src/app/layout.tsx`
+---
 
-## Fase 4: Componentes UI Base (src/components/ui/)
-- [x] Actualizar componente `Button` con nuevos colores
-- [x] Modificar componente `Card` para nueva paleta
-- [x] Ajustar componente `Input` y formularios
-- [x] Actualizar componente `Dialog` y modales
-- [x] Modificar componente `Tooltip`
-- [x] Actualizar componente `Badge`
-- [x] Revisar componente `Alert`
-- [x] Verificar componente `Select`
-- [x] Ajustar componente `Tabs`
-- [x] Actualizar componente `AlertDialog`
-- [x] Revisar componente `Calendar`
-- [x] Ajustar componente `Checkbox`
-- [x] Modificar componente `Collapsible`
-- [x] Actualizar componente `DropdownMenu`
-- [x] Revisar componente `Form`
-- [x] Ajustar componente `IconButton`
-- [x] Modificar componente `Label`
-- [x] Actualizar componente `Popover`
-- [x] Revisar componente `Progress`
-- [x] Ajustar componente `RadioGroup`
-- [x] Modificar componente `ScrollArea`
-- [x] Actualizar componente `Sheet`
-- [x] Revisar componente `Skeleton`
-- [x] Ajustar componente `Table`
-- [x] Modificar componente `Textarea`
-- [x] Actualizar componente `Toast` y `Toaster`
-- [x] Revisar componente `UnderConstructionDialog`
+## 📋 **Plan Secuencial de Ejecución**
 
-## Fase 5: Componentes de Layout (src/components/layout/)
-- [x] Actualizar `Header` con nueva paleta
-- [x] Revisar `DashboardNav`
-- [x] Ajustar `AuthNavigationHandler`
-- [x] Modificar `ClientWrapper`
+### **FASE 1: Correcciones Críticas (Inmediatas)**
+**Prioridad: URGENTE** | **Tiempo estimado: 30 minutos** | **Estado: ✅ COMPLETADA**
 
-## Fase 6: Componentes de Dashboard (src/components/dashboard/)
-- [x] Actualizar `DashboardHeader` con nueva paleta
-- [x] Modificar `StatCard` con colores adecuados
+| Tarea | Responsable | Estado | Fecha Límite | Dependencias |
+|-------|-------------|--------|--------------|--------------|
+| 1.1 Corregir ActionCodeSettings para desarrollo | IA | ✅ Completado | 2025-01-04 09:41 | Ninguna |
+| 1.2 Agregar configuración dinámica por entorno | IA | ✅ Completado | 2025-01-04 09:41 | 1.1 |
+| 1.3 Testing del flujo de redirección | IA | 🟡 En Progreso | +15 min | 1.2 |
+| 1.4 Mejorar manejo de errores en login | IA | ✅ Completado | 2025-01-04 09:43 | Ninguna |
+| 1.5 Agregar logging específico para debugging | IA | ✅ Completado | 2025-01-04 09:45 | 1.4 |
 
-## Fase 7: Componentes de Rifa (src/components/raffle/)
-- [x] Actualizar `RaffleSlot` con nueva paleta de estados
-- [x] Modificar `RaffleBoard` visualmente
-- [x] Ajustar `RaffleCard` y componentes relacionados
-- [x] Actualizar `StatusLegend` con nuevos colores
-- [x] Revisar `CreateRaffleForm`
-- [x] Ajustar `EditSlotDialog`
-- [x] Modificar `DeclareWinnerDialog`
-- [x] Actualizar `EditRaffleDialog`
-- [x] Revisar `FinalizeRaffleButton`
-- [x] Ajustar `RaffleTable`
-- [x] Modificar `RaffleInfoDialog`
-- [x] Actualizar `ActivityHistory`
+### **FASE 2: Mejoras de Experiencia (Media Prioridad)**
+**Prioridad: ALTA** | **Tiempo estimado: 45 minutos**
 
-## Fase 8: Componentes de Autenticación (src/components/auth/)
-- [x] Actualizar `SessionTimeoutDialog`
-- [x] Modificar `TermsDialog`
+| Tarea | Responsable | Estado | Fecha Límite | Dependencias |
+|-------|-------------|--------|--------------|--------------|
+| 2.1 Configurar idioma español en Firebase | IA | ❌ Pendiente | +30 min | Ninguna |
+| 2.2 Agregar regional settings | IA | ❌ Pendiente | +5 min | 2.1 |
+| 2.3 Testing de mensajes en español | IA | ❌ Pendiente | +10 min | 2.2 |
+| 2.4 Optimizar deliverability de correos | IA | ❌ Pendiente | +20 min | Ninguna |
 
-## Fase 9: Páginas Principales (src/app/)
-- [x] Actualizar página principal `page.tsx`
-- [x] Revisar páginas de autenticación (`login`, `signup`, `forgot-password`)
-- [x] Ajustar página de dashboard
-- [x] Modificar páginas de rifa (`raffle/[id]/page.tsx`)
-- [x] Actualizar página de creación de rifa (`raffle/create/page.tsx`)
-- [x] Revisar página pública de rifa (`public/raffle/[raffleId]/page.tsx`)
-- [x] Ajustar página de forgot-password
-- [x] Modificar página de términos (`terms/page.tsx`)
+### **FASE 3: Personalización Completa (Baja Prioridad)**
+**Prioridad: MEDIA** | **Tiempo estimado: 60 minutos**
 
-## Fase 10: Efectos Visuales y Microinteracciones
-- [x] Implementar sombras suaves con color Charcoal
-- [x] Agregar transiciones en botones (hover effects)
-- [x] Crear efecto de pulso para casillas ganadoras
-- [x] Implementar skeleton loading con nuevos colores
-- [x] Agregar efectos de profundidad en tarjetas
+| Tarea | Responsable | Estado | Fecha Límite | Dependencias |
+|-------|-------------|--------|--------------|--------------|
+| 3.1 Personalizar plantillas en Firebase Console | Usuario | ❌ Pendiente | Manual | Ninguna |
+| 3.2 Diseño creativo con branding Lucky 100 | Usuario | ❌ Pendiente | Manual | 3.1 |
+| 3.3 Configurar dominio personalizado (opcional) | Usuario | ❌ Pendiente | Manual | Ninguna |
+| 3.4 Configurar SPF/DKIM/DMARC (opcional) | Usuario | ❌ Pendiente | Manual | 3.3 |
 
-## Fase 11: Estados Específicos de Casillas
-- [x] Actualizar estados de casillas con colores especiales armonizados con la paleta (Ver `src/app/globals.css` - Colores Especiales para Estados de Casillas)
-- [x] Aplicar `#8B9A46` para estado `available` (verde oliva que combina con Ecru y Butterscotch)
-- [x] Aplicar `#C17D4E` para estado `reserved` (terracota que combina con Alloy Orange y Butterscotch)
-- [x] Aplicar `#5D7CA6` para estado `paid` (azul grisáceo que combina con Charcoal)
-- [x] Aplicar `#E6B422` para estado `winning` (dorado cálido que combina con Butterscotch)
-- [x] Aplicar `#7A6B5D` para estado `losing` (gris terroso que combina con Ecru y Charcoal)
+---
 
-## Fase 12: Verificación y Testing Visual
-- [x] Revisar todas las páginas principales
-- [x] Verificar responsividad en móviles
-- [x] Testear estados interactivos (hover, focus, active)
-- [x] Validar contraste y accesibilidad
-- [x] Revisar consistencia visual en toda la app
+## 🔧 **Implementaciones Técnicas Detalladas**
 
-## Fase 13: Optimización Final
-- [x] Limpiar código CSS no utilizado
-- [x] Optimizar clases de Tailwind
-- [x] Verificar rendimiento visual
-- [x] Documentar cambios realizados
+### **1. Corrección de ActionCodeSettings**
+```typescript
+// ARCHIVO: src/app/(auth)/forgot-password/page.tsx
+// LÍNEA: ~40
+// CAMBIO: URL dinámica por entorno
 
-## Inconsistencias y Ajustes Adicionales Encontrados
+// ESTADO: ✅ Completado
+const actionCodeSettings: ActionCodeSettings = {
+  url: process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:9002/reset-password'  // Desarrollo: localhost
+    : 'https://rifas-online-f2668.firebaseapp.com/reset-password', // Producción: dominio Firebase
+  handleCodeInApp: false,
+  // ... resto de configuración
+};
+```
 
-### 1. Confetti Colors
-- **Problema encontrado**: En `src/lib/utils.ts`, la función `triggerSlotConfetti` still usa colores antiguos: `['#fbbf24', '#f59e0b', '#d97706', '#92400e']` (dorados y amarillos).
-- **Recomendación**: Debería usar colores de la nueva paleta que combinen con el tema cálido (posiblemente tonos de la paleta principal como `#E6B422` dorado cálido, `#D8973C` butterscotch, etc.).
-- **Estado**: PENDIENTE DE ACTUALIZACIÓN
+### **2. Mejora de Manejo de Errores en Login**
+```typescript
+// ARCHIVO: src/app/(auth)/login/page.tsx
+// LÍNEA: ~60
+// CAMBIO: Agregar casos específicos de error
 
-### 2. Colores en Dashboard Header
-- **Problema encontrado**: En `src/components/dashboard/dashboard-header.tsx`, hay un texto con clase `text-gray-200` que no se ajusta a la nueva paleta de colores.
-- **Ubicación**: Línea 24: `<p className="text-gray-200 mt-1">Aquí tienes un resumen de tus rifas y actividades.</p>`
-- **Recomendación**: Debería usar un color de la nueva paleta que proporcione buena legibilidad contra el background degradado.
-- **Estado**: PENDIENTE DE ACTUALIZACIÓN
+// ESTADO: ✅ Completado
+switch (firebaseError.code) {
+  case 'auth/invalid-credential':
+    description = 'Esta contraseña ha sido cambiada recientemente. Si olvidaste tu contraseña, usa el enlace de recuperación.';
+    errorType = 'password-changed';
+    break;
+  case 'auth/wrong-password':
+    description = 'Contraseña incorrecta. Verifica tus credenciales.';
+    errorType = 'wrong-password';
+    break;
+  // ... más casos implementados
+}
+```
 
-## Verificación General
-A pesar de estas inconsistencias menores, la mayoría de los componentes y páginas están correctamente implementados con la nueva paleta de colores cálida y terrosa según las especificaciones. La estructura de colores en `globals.css` y `tailwind.config.ts` está correctamente configurada y se ha implementado en la mayoría de los componentes UI, layout, y páginas.
+### **3. Configuración de Idioma**
+```typescript
+// ARCHIVO: src/lib/firebase.ts
+// LÍNEA: ~15
+// CAMBIO: Agregar configuración de idioma
 
-## Notas Importantes
-- **NO modificar lógica funcional existente**
-- **Mantener todas las funcionalidades intactas**
-- **Enfocarse únicamente en aspectos visuales**
-- **Priorizar colores primero, efectos después**
-- **Usar Montserrat como tipografía principal**
+// ESTADO: ❌ Pendiente
+const auth = getAuth(app);
+auth.languageCode = 'es'; // Agregar esta línea
+```
 
-## Progreso General
-- [x] Fase 1: Configuración Base (100%)
-- [x] Fase 1.5: Reemplazo Gradual de Colores Antiguos (100%)
-- [x] Fase 2: Tipografía (100%)
-- [x] Fase 3: Layout (100%)
-- [x] Fase 4: Componentes UI Base (100%)
-- [x] Fase 5: Componentes de Layout (100%)
-- [x] Fase 6: Componentes de Dashboard (100%)
-- [x] Fase 7: Componentes de Rifa (100%)
-- [x] Fase 8: Componentes de Autenticación (100%)
-- [x] Fase 9: Páginas Principales (100%)
-- [x] Fase 10: Efectos Visuales y Microinteracciones (100%)
-- [x] Fase 11: Estados Específicos de Casillas (100%)
-- [x] Fase 12: Verificación y Testing Visual (100%)
-- [x] Fase 13: Optimización Final (100%)
+---
+
+## 📈 **Métricas de Éxito y KPIs**
+
+### **KPIs a Monitorear:**
+| KPI | Objetivo | Estado Actual | Medición |
+|-----|----------|---------------|----------|
+| Tasa de entrega de correos | >95% | ❌ Desconocida | Firebase Analytics |
+| Tasa de apertura | >60% | ❌ Desconocida | Email tracking |
+| Tasa de completación de reset | >80% | ❌ Desconocida | Logs del sistema |
+| Tiempo promedio del flujo | <2 minutos | ❌ Desconocida | Performance logs |
+| Reducción de tickets de soporte | -50% | ❌ Desconocida | Sistema de tickets |
+
+### **Logs Implementados:**
+| Tipo de Log | Componente | Estado | Descripción |
+|-------------|------------|--------|-------------|
+| info() | ForgotPassword | ✅ Completo | Inicio/fin del proceso |
+| error() | ForgotPassword | ✅ Completo | Errores detallados |
+| warn() | ForgotPassword | ✅ Completo | Advertencias Firebase |
+| info() | ResetPassword | ✅ Completo | Verificación de códigos |
+| error() | ResetPassword | ✅ Completo | Errores de reset |
+| info() | Login | ✅ Completo | Inicio/fin del proceso, persistencia |
+| error() | Login | ✅ Completo | Errores específicos con contexto |
+| warn() | Login | ✅ Completo | Advertencias Firebase |
+
+### **Template de Email Creado (v2 - Réplica Exacta):**
+| Elemento | Estado | Descripción |
+|----------|--------|-------------|
+| Template HTML | ✅ Completo | Réplica exacta del diseño web |
+| Fondo Pattern | ✅ Completo | `fondo-dani.png` + gradiente overlay |
+| Card Glassmorphism | ✅ Completo | `bg-card/80 backdrop-blur-sm` |
+| Paleta Oficial | ✅ Completo | #A4243B, #D8C99B, #D8973C, etc. |
+| Layout Idéntico | ✅ Completo | Header, card, márgenes web |
+| Variables Firebase | ✅ Completo | %EMAIL%, %LINK%, %APP_NAME% |
+| Responsive Design | ✅ Completo | Mobile-first con breakpoints |
+| Documentación | ✅ Completo | Instrucciones actualizadas |
+
+### **Corrección Visual de Reset-Password:**
+| Elemento | Estado | Descripción |
+|----------|--------|-------------|
+| Mover al grupo auth | ✅ Completo | `/reset-password` → `/(auth)/reset-password` |
+| Heredar layout auth | ✅ Completo | Header, fondo, centrado automático |
+| Eliminar página antigua | ✅ Completo | Limpieza de archivos residuales |
+| Consistencia visual | ✅ Completo | Misma apariencia que login/signup |
+| Funcionalidad intacta | ✅ Completo | Todo el lógica preservada |
+
+---
+
+## 🚨 **Riesgos y Mitigaciones**
+
+| Riesgo | Probabilidad | Impacto | Mitigación | Estado |
+|--------|--------------|---------|------------|--------|
+| Firebase rechace URLs de localhost | Media | Alto | Usar dominio de staging | ❌ Pendiente |
+| Usuarios no reciban correos (spam) | Alta | Crítico | Configurar dominio personalizado | ❌ Pendiente |
+| Cambios rompan flujo existente | Baja | Medio | Testing exhaustivo | ❌ Pendiente |
+| Configuración de idioma no funcione | Baja | Bajo | Verificar en consola Firebase | ❌ Pendiente |
+
+---
+
+## 📝 **Acciones Manuales Requeridas (Usuario)**
+
+### **Firebase Console - Urgente:**
+1. **Authentication → Templates → Password reset email**
+   - [ ] Editar plantilla en español
+   - [ ] Personalizar con branding Lucky 100
+   - [ ] Configurar URL de redirección
+
+2. **Authentication → Settings → Authorized domains**
+   - [ ] Agregar `localhost:9002` para desarrollo
+   - [ ] Verificar dominio de producción si aplica
+
+### **Configuración de Dominio (Opcional):**
+1. **Configurar dominio personalizado**
+   - [ ] Comprar dominio si no existe
+   - [ ] Configurar DNS para Firebase
+   - [ ] Configurar SPF/DKIM/DMARC
+
+---
+
+## 🔄 **Ciclo de Vida de la Tarea**
+
+### **Fase Actual: Planificación y Análisis**
+- ✅ Análisis completo del codebase
+- ✅ Diagnóstico de problemas
+- ✅ Plan de acción detallado
+- ✅ Documentación de seguimiento
+
+### **Próxima Fase: Implementación Crítica**
+- [ ] Corregir ActionCodeSettings
+- [ ] Mejorar manejo de errores
+- [ ] Testing del flujo completo
+
+### **Fase Final: Optimización y Personalización**
+- [ ] Configurar idioma español
+- [ ] Personalizar plantillas
+- [ ] Monitoreo y ajustes
+
+---
+
+## 📊 **Resumen de Estado General**
+
+| Categoría | Total | Completadas | En Progreso | Pendientes | % Completado |
+|-----------|-------|-------------|-------------|------------|--------------|
+| Tareas Críticas | 5 | 4 | 1 | 0 | 80% |
+| Tareas Media | 4 | 0 | 0 | 4 | 0% |
+| Tareas Baja | 4 | 0 | 0 | 4 | 0% |
+| **TOTAL** | **13** | **4** | **1** | **8** | **31%** |
+
+### **Próximo Hitizador:**
+- **Fecha**: Hoy
+- **Objetivo**: Completar FASE 1 (Correcciones Críticas) - 80% completado
+- **Tiempo estimado**: 5 minutos para testing final
+
+### **Resumen de Implementaciones Técnicas:**
+- ✅ **ActionCodeSettings**: Configurado para localhost en desarrollo
+- ✅ **Manejo de Errores**: Detección específica de `auth/invalid-credential`
+- ✅ **Logging Completo**: Todos los componentes con logs estructurados
+- 🟡 **Testing**: Pendiente validación del flujo completo
+
+---
+
+## 📞 **Comunicación y Soporte**
+
+### **Stakeholders:**
+- **Desarrollador (IA)**: Implementación técnica
+- **Usuario (Project Owner)**: Configuración manual en Firebase Console
+- **Equipo de Soporte**: Feedback de usuarios finales
+
+### **Canales de Comunicación:**
+- **Documentación**: Este archivo `docs/progreso_tarea.md`
+- **Logs**: Sistema de logging implementado
+- **Testing**: Pruebas manuales en cada fase
+
+---
+
+**Última Actualización**: 2025-01-04 09:47:00 UTC-5  
+**Próxima Revisión**: Al completar testing de FASE 1  
+**Estado General**: � FASE 1 CASI COMPLETADA (80%)
