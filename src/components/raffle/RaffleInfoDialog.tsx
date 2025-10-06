@@ -71,7 +71,7 @@ export default function RaffleInfoDialog({
               </TabsList>
               
               <TabsContent value="info" className="m-4 space-y-4">
-                <Card className="border-border/60 shadow-sm">
+                <Card className="border-border/60 shadow-sm rounded-2xl">
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-primario-oscuro/70">Casillas totales:</span>
@@ -100,7 +100,7 @@ export default function RaffleInfoDialog({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
                   >
-                    <Card className="border-slot-winning/50 bg-gradient-to-br from-slot-winning/30 to-slot-winning/20 shadow-lg overflow-hidden">
+                    <Card className="border-slot-winning/50 bg-gradient-to-br from-slot-winning/30 to-slot-winning/20 shadow-lg overflow-hidden rounded-2xl">
                       <CardContent className="pt-6">
                         <div className="text-center space-y-3">
                           <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-slot-winning to-slot-winning/80 rounded-full shadow-lg">
@@ -124,7 +124,7 @@ export default function RaffleInfoDialog({
               </TabsContent>
 
               <TabsContent value="terms" className="m-4">
-                <Card className="border-border/60 shadow-sm">
+                <Card className="border-border/60 shadow-sm rounded-2xl">
                   <CardContent className="pt-6">
                     <ScrollArea className="h-[300px] w-full rounded-md border border-border p-4">
                       <p className="text-sm text-primario-oscuro/70 leading-relaxed whitespace-pre-wrap">

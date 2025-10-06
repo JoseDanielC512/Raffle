@@ -7,6 +7,7 @@ type StatusLegendProps = {
   paidSlots: number;
   highlightedStatus: string | null;
   setHighlightedStatus: (status: string | null) => void;
+  onWinnerHighlight?: () => void;
 };
 
 export default function StatusLegend({
@@ -15,6 +16,7 @@ export default function StatusLegend({
   paidSlots,
   highlightedStatus,
   setHighlightedStatus,
+  onWinnerHighlight,
 }: StatusLegendProps) {
   const legendItems = [
     {
@@ -59,7 +61,12 @@ export default function StatusLegend({
               "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all duration-200 border-2 border-transparent hover:scale-105",
               isHighlighted && "border-acento-fuerte/50 bg-acento-fuerte/5 shadow-soft"
             )}
-            onMouseEnter={() => setHighlightedStatus(item.status)}
+            onMouseEnter={() => {
+              setHighlightedStatus(item.status);
+              if (item.status === 'winner' && onWinnerHighlight) {
+                onWinnerHighlight();
+              }
+            }}
             onMouseLeave={() => setHighlightedStatus(null)}
           >
             <div className={cn("p-1 rounded-md", item.colorClasses)}>

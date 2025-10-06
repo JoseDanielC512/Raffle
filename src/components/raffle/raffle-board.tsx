@@ -24,6 +24,13 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
   const [highlightedStatus, setHighlightedStatus] = useState<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
+  // Función para disparar confetti en la casilla ganadora
+  const handleWinnerHighlight = () => {
+    if (raffle.winnerSlotNumber) {
+      triggerSlotConfetti(`slot-${raffle.winnerSlotNumber}`);
+    }
+  };
+
   useEffect(() => {
     if (raffle.finalizedAt && raffle.winnerSlotNumber) {
       triggerSlotConfetti(`slot-${raffle.winnerSlotNumber}`);
@@ -37,14 +44,11 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="relative"
     >
-      {/* Outer glow effect */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fondo-base/20 via-transparent to-transparent rounded-3xl blur-2xl"></div>
-      
-      <Card className="bg-gradient-to-br from-fondo-base/60 via-fondo-base/40 to-fondo-base/60 backdrop-blur-xl border shadow-2xl rounded-2xl overflow-hidden">
-        <CardHeader className="pb-6 bg-gradient-to-r from-acento-fuerte/10 to-acento-calido/10 border-b">
+      <Card className="bg-card/80 backdrop-blur-sm border-border/60 shadow-lg rounded-2xl overflow-hidden">
+        <CardHeader className="pb-6 bg-gradient-to-r from-primario-oscuro/60 via-barra-principal/50 to-primario-oscuro/60 border-b">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex items-center gap-4 flex-wrap">
-              <CardTitle className="text-2xl md:text-3xl font-bold text-primario-oscuro drop-shadow-sm">
+              <CardTitle className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">
                 Tablero de la Rifa
               </CardTitle>
               <motion.div
@@ -53,8 +57,11 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
                 transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
               >
                 <Badge 
-                  variant={raffle.status === 'finalized' ? "outline" : "default" } 
-                  className="text-sm font-semibold px-3 py-1 rounded-full shadow-lg"
+                  className={`text-sm font-semibold px-3 py-1 rounded-full shadow-lg ${
+                    raffle.status === 'finalized' 
+                      ? "bg-warning text-warning-foreground hover:bg-warning/90" 
+                      : "bg-success text-success-foreground hover:bg-success/90"
+                  }`}
                 >
                   {raffle.status === 'finalized' ? "Finalizada" : "Activa"}
                 </Badge>
@@ -78,7 +85,7 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
             )}
           </div>
           <motion.p 
-            className="text-muted-foreground text-base md:text-lg font-light drop-shadow-sm"
+            className="text-white/90 text-base md:text-lg font-light drop-shadow-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
@@ -144,6 +151,7 @@ const RaffleBoard = memo(({ raffle, slots, isOwner, onSlotUpdate, onInfoClick }:
               paidSlots={paidSlots}
               highlightedStatus={highlightedStatus}
               setHighlightedStatus={setHighlightedStatus}
+              onWinnerHighlight={handleWinnerHighlight}
             />
           </motion.div>
         </CardContent>

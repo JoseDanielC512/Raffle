@@ -19,7 +19,6 @@
     --slot-paid: #5D7CA6;           /* Azul grisáceo - Combina con Charcoal */
     --slot-reserved: #C17D4E;       /* Terracota - Combina con Alloy Orange y Butterscotch */
     --slot-winning: #E6B422;        /* Dorado cálido - Combina con Butterscotch */
-    --slot-losing: #7A6B5D;         /* Gris terroso - Combina con Ecru y Charcoal */
     
     /* 3. Colores Semánticos Unificados (compartidos entre Badges y Toasts) */
     --success: #8B9A46;             /* Verde oliva - Éxito/Completado */
@@ -191,17 +190,18 @@
     background-size: 300px 300px;
     background-position: center;
     background-attachment: fixed;
-    position: relative;
+    position: fixed;
+    inset: 0;
   }
-  
+
   .auth-pattern-bg::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, 
-      rgba(39, 62, 71, 0.75) 0%,      /* --primario-oscuro con 75% opacidad */
+    background: linear-gradient(135deg,
+      rgba(139, 154, 70, 0.75) 0%,    /* Verde oliva con 75% opacidad */
       rgba(216, 151, 60, 0.65) 50%,    /* --barra-principal con 65% opacidad */
-      rgba(39, 62, 71, 0.75) 100%     /* --primario-oscuro con 75% opacidad */
+      rgba(139, 154, 70, 0.75) 100%   /* Verde oliva con 75% opacidad */
     );
     z-index: 1;
   }

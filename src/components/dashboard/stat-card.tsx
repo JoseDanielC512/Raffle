@@ -24,7 +24,7 @@ export function StatCard({ title, value, description, icon, isLoading }: StatCar
       transition={{ duration: 0.3, ease: "easeOut" }}
       whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
     >
-      <Card className="shadow-md">
+      <Card className="shadow-md rounded-2xl">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
           {icon}

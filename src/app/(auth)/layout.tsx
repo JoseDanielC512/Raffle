@@ -25,11 +25,14 @@ export default function AuthLayout({
 
   // Render the login/signup forms only if the user is unauthenticated.
   return (
-    <div className="min-h-screen flex flex-col auth-pattern-bg">
-      <Header showAuthButtons={false} />
-      <main className="flex items-center justify-center flex-1 p-4 auth-pattern-content">
-        {children}
-      </main>
+    <div className="min-h-screen flex flex-col">
+      <div className="fixed inset-0 auth-pattern-bg z-0" />
+      <div className="relative z-10 min-h-screen flex flex-col">
+        <Header showAuthButtons={false} />
+        <main className="flex items-center justify-center flex-1 p-4 auth-pattern-content">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
