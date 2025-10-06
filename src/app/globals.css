@@ -210,4 +210,32 @@
     position: relative;
     z-index: 2;
   }
+
+  /* Fondo pattern para página de inicio */
+  .home-pattern-bg {
+    background-image: url('/fondo-dani.png');
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    background-position: center;
+    background-attachment: fixed;
+    position: fixed;
+    inset: 0;
+  }
+
+  .home-pattern-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+      rgba(164, 36, 59, 0.01) 0%,    /* acento-fuerte con 1% opacidad */
+      rgba(216, 151, 60, 0.005) 50%,  /* barra-principal con 0.5% opacidad */
+      rgba(216, 201, 155, 0.002) 100% /* fondo-base con 0.2% opacidad */
+    );
+    z-index: 1;
+  }
+  
+  .home-pattern-content {
+    position: relative;
+    z-index: 2;
+  }
 }
