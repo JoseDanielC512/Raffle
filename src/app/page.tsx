@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="fixed inset-0 home-pattern-bg z-0" />
-      <div className="relative z-10 min-h-screen flex flex-col bg-gradient-to-b from-acento-fuerte/20 via-barra-principal/15 to-acento-calido/10">
+      <div className="relative z-10 min-h-screen flex flex-col home-pattern-content">
         <Header />
         {/* Hero Section */}
         <motion.section 
@@ -131,17 +131,20 @@ export default function Home() {
           <div className="relative container px-4 md:px-6 max-w-6xl mx-auto h-full flex items-center">
             <div className="flex flex-col items-center justify-center space-y-8 text-center w-full">
               <div className="space-y-6">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-white leading-snug [text-shadow:_0_2px_4px_rgba(0,0,0,0.3)]">
-                  Crea, Gestiona y Participa<br className="hidden md:block" /> en Rifas Modernas y Seguras
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl leading-snug">
+                  <span className="hero-title-gradient">Lucky 100</span>{" "}
+                  <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl">🍀</span>{" "}
+                  <span className="hero-title-gradient">tu plataforma de</span><br className="hidden md:block" />
+                  <span className="hero-title-gradient"> Rifas Modernas y Seguras</span>
                 </h1>
-                <p className="mx-auto max-w-[800px] text-lg md:text-xl text-white/95 leading-relaxed">
+                <p className="mx-auto max-w-[800px] text-lg md:text-xl text-foreground leading-relaxed">
                   Una plataforma transparente y segura construida con Firebase para organizar rifas comunitarias, con actualizaciones en tiempo real y un sistema de 100 casillas fácil de usar.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button asChild size="lg" className="w-full sm:w-auto group bg-acento-fuerte text-white hover:bg-acento-fuerte/90 shadow-[0_0_15px_rgba(164,36,59,0.6)] hover:shadow-[0_0_25px_rgba(164,36,59,0.8)] transition-all duration-300">
+                  <Button asChild size="lg" className="w-full sm:w-auto">
                     <Link href="/dashboard">
                       <span className="flex items-center">
-                        <ArrowUpRight className="mr-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                        <ArrowUpRight className="mr-2 h-5 w-5" />
                         Ir al Dashboard
                       </span>
                     </Link>
@@ -179,32 +182,51 @@ export default function Home() {
                   show: {
                     opacity: 1,
                     transition: {
-                      staggerChildren: 0.1,
+                      staggerChildren: 0.2,
+                      delayChildren: 0.1,
                     },
                   },
                 }}
               >
-                <div className="text-center lg:text-left mb-6">
+                <motion.div 
+                  className="text-center lg:text-left mb-6"
+                  variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                >
                   <h3 className="text-2xl font-semibold text-foreground mb-2">Participa y Crea</h3>
                   <p className="text-muted-foreground">
-                    Explora rifas disponibles o lanza la tuya.
+                    Explora rifas disponibles o crea la tuya.
                   </p>
-                </div>
-                <div className="space-y-6">
+                </motion.div>
+                <motion.div 
+                  className="space-y-6"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    show: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.15,
+                      },
+                    },
+                  }}
+                >
                   {mockRaffles.map((raffle) => (
-                    <RaffleCard 
-                      key={raffle.id} 
-                      raffle={{
-                        ...raffle,
-                        // Añadir progresos realistas
-                        ...(raffle.id === '1' && { filledSlots: 67 }), // 67% para rifa de viaje
-                        ...(raffle.id === '2' && { filledSlots: 100 }), // 100% para rifa finalizada
-                        // Añadir un nombre de ganador ficticio solo a la última raffle
-                        ...(raffle.id === '2' && { winnerName: 'Ana García' })
-                      }} 
-                    />
+                    <motion.div
+                      key={raffle.id}
+                      variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
+                    >
+                      <RaffleCard 
+                        raffle={{
+                          ...raffle,
+                          // Añadir progresos realistas
+                          ...(raffle.id === '1' && { filledSlots: 67 }), // 67% para rifa de viaje
+                          ...(raffle.id === '2' && { filledSlots: 100 }), // 100% para rifa finalizada
+                          // Añadir un nombre de ganador ficticio solo a la última raffle
+                          ...(raffle.id === '2' && { winnerName: 'Ana García' })
+                        }} 
+                      />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               </motion.div>
 
               {/* Columna derecha: Tablero Demo */}
@@ -222,10 +244,10 @@ export default function Home() {
                 </div>
                 <div className="flex-1 flex items-center justify-center">
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.6, rotateY: 45, rotateX: 15, y: 50 }}
-                    animate={{ opacity: 1, scale: 1, rotateY: 0, rotateX: 0, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     transition={{ 
-                      duration: 1.2, 
+                      duration: 0.6, 
                       delay: 0.4,
                       ease: "easeOut",
                       type: "spring",
@@ -233,10 +255,6 @@ export default function Home() {
                       damping: 15
                     }}
                     className="w-full"
-                    style={{ 
-                      perspective: "1000px",
-                      transformStyle: "preserve-3d"
-                    }}
                   >
                     <RaffleBoard
                       raffle={{

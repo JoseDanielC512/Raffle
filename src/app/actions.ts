@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { Raffle } from '@/lib/definitions';
 import { auth } from '@/lib/firebase'; // Client auth for client-side actions if needed
-import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminDb, uploadBufferToStorage } from '@/lib/firebase-admin';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { FieldValue } from 'firebase-admin/firestore';
 import { countActiveRafflesForUserAdmin } from '@/lib/firestore-admin';
@@ -144,25 +144,58 @@ export async function generateDetailsAction(prevState: GenerateDetailsState, for
   const { prompt } = validatedFields.data;
   
   try {
-    // Simulate AI generation (in a real implementation, this would call an AI service)
-    // For now, return mock data based on the prompt
-    const mockName = `Rifa de ${prompt.split(' ')[0]}`;
-    const mockDescription = `¡Participa en esta increíble rifa! Estás compitiendo por ${prompt}.`;
-    const mockTerms = `1. El participante debe ser mayor de edad.\n2. El ganador será elegido al azar.\n3. No se permiten devoluciones.\n4. La rifa se sorteará dentro de los próximos 30 días.`;
+    // Llama al flujo real de Genkit para generar el contenido.
+    const { generateRaffleDetails } = await import('@/ai/flows/generate-raffle-details');
+    const result = await generateRaffleDetails({ prompt });
 
     return {
-      name: mockName,
-      description: mockDescription,
-      terms: mockTerms,
+      name: result.name,
+      description: result.description,
+      terms: result.terms,
       message: 'Contenido generado exitosamente con IA',
     };
   } catch (error) {
+    console.error('[AI_ACTION_ERROR]', error);
+    // Devuelve un mensaje de error genérico para el usuario.
+    // Los detalles del error se registran en el servidor.
     return { 
-      message: error instanceof Error ? error.message : 'Error al generar contenido con IA.',
+      message: 'No se pudo generar el contenido. Por favor, inténtalo de nuevo más tarde.',
       errors: undefined
     };
   }
 }
+
+// --- AI IMAGE GENERATION --- //
+
+const GenerateImagesSchema = z.object({
+  prompt: z.string().min(1, 'La descripción del premio es obligatoria.'),
+  idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
+});
+
+export async function generateRaffleImagesAction(prompt: string, idToken: string): Promise<{ urls?: string[]; error?: string }> {
+  const validatedFields = GenerateImagesSchema.safeParse({ prompt, idToken });
+
+  if (!validatedFields.success) {
+    return { error: 'La validación de los campos falló.' };
+  }
+
+  try {
+    const adminAuth = getAdminAuth();
+    await adminAuth.verifyIdToken(idToken);
+  } catch (error) {
+    return { error: 'Error de autenticación: El token no es válido.' };
+  }
+
+  try {
+    const { generateRaffleImagesFlow } = await import('@/ai/flows/generate-raffle-images');
+    const imageUrls = await generateRaffleImagesFlow({ description: prompt });
+    return { urls: imageUrls };
+  } catch (error) {
+    console.error('[AI_IMAGE_ACTION_ERROR]', error);
+    return { error: 'No se pudieron generar las imágenes. Por favor, inténtalo de nuevo.' };
+  }
+}
+
 
 // --- RAFFLE ACTIONS --- //
 
@@ -173,50 +206,59 @@ const CreateRaffleSchema = z.object({
   slotPrice: z.coerce.number().min(1, 'El precio de la casilla es obligatorio y debe ser mayor a 0.'),
   finalizationDate: z.string().nullable().optional(), // Fecha de finalización en formato ISO string
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
+  images: z.array(z.instanceof(File)).optional(), // Acepta un array de archivos
 });
 
 export async function createRaffleAction(prevState: { message: string | null; success?: boolean }, formData: FormData): Promise<{ message: string | null; success?: boolean; raffleId?: string }> {
-  console.log('[CREATE_RAFFLE_ACTION] Iniciando acción. FormData recibido:', Object.fromEntries(formData.entries()));
+  const rawFormData = Object.fromEntries(formData.entries());
+  const images = formData.getAll('images').filter(img => img instanceof File && img.size > 0) as File[];
+  
+  const validatedFields = CreateRaffleSchema.safeParse({ ...rawFormData, images });
 
-  const validatedFields = CreateRaffleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     console.error('[CREATE_RAFFLE_ACTION] ERROR: Validación de Zod fallida.', validatedFields.error.flatten());
     return { message: 'La validación de los campos falló.', success: false };
   }
 
-  console.log('[CREATE_RAFFLE_ACTION] Validación de Zod exitosa. Datos parseados:', validatedFields.data);
-  const { idToken, ...raffleData } = validatedFields.data;
+  const { idToken, images: imageFiles, ...raffleData } = validatedFields.data;
 
   let ownerId: string;
   let ownerName: string;
   try {
-    console.log('[CREATE_RAFFLE_ACTION] Verificando idToken...');
     const adminAuth = getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     ownerId = decodedToken.uid;
     const userRecord = await adminAuth.getUser(ownerId);
     ownerName = userRecord.displayName || 'Usuario Anónimo';
-    console.log('[CREATE_RAFFLE_ACTION] idToken verificado. UID del owner:', ownerId, 'Name:', ownerName);
-    console.log('[CREATE_RAFFLE_ACTION] Claims del token:', decodedToken);
   } catch (error) {
     console.error('[CREATE_RAFFLE_ACTION] ERROR: Falló la verificación del idToken.', error);
     return { message: 'Error de autenticación: El token no es válido.', success: false };
   }
 
   try {
-    console.log('[CREATE_RAFFLE_ACTION] Contando rifas activas para el usuario:', ownerId);
     const activeRaffleCount = await countActiveRafflesForUserAdmin(ownerId);
-    console.log('[CREATE_RAFFLE_ACTION] Rifas activas encontradas:', activeRaffleCount);
-
     if (activeRaffleCount >= 2) {
-      console.warn('[CREATE_RAFFLE_ACTION] ADVERTENCIA: Límite de rifas activas alcanzado.');
-      throw new Error('Has alcanzado el límite de 2 rifas activas. No puedes crear más rifas hasta finalizar una existente.');
+      throw new Error('Has alcanzado el límite de 2 rifas activas.');
     }
 
     const adminDb = getAdminDb();
     const newRaffleRef = adminDb.collection('raffles').doc();
     const raffleId = newRaffleRef.id;
-    console.log('[CREATE_RAFFLE_ACTION] Nuevo ID de rifa generado:', raffleId);
+
+    // Subir imágenes a Firebase Storage
+    const imageUrls: string[] = [];
+    if (imageFiles && imageFiles.length > 0) {
+      // Obtener el nombre del bucket desde variables de entorno existentes
+      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`;
+      console.log(`[CREATE_RAFFLE_ACTION] Using bucket: ${bucketName}`);
+      
+      for (const file of imageFiles) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const destinationPath = `raffles/${raffleId}/${Date.now()}-${file.name}`;
+        const publicUrl = await uploadBufferToStorage(buffer, destinationPath, file.type, bucketName);
+        imageUrls.push(publicUrl);
+      }
+    }
 
     const newRaffle: Omit<Raffle, 'id'> = {
       ...raffleData,
@@ -227,6 +269,7 @@ export async function createRaffleAction(prevState: { message: string | null; su
       createdAt: new Date().toISOString(),
       finalizedAt: null,
       finalizationDate: raffleData.finalizationDate || null,
+      imageUrls, // Añadir las URLs de las imágenes
       activityHistory: [{
         id: `act-${Date.now()}`,
         action: 'raffle_created',
@@ -235,42 +278,26 @@ export async function createRaffleAction(prevState: { message: string | null; su
         details: { message: 'Rifa creada exitosamente' }
       }]
     };
-    console.log('[CREATE_RAFFLE_ACTION] Objeto newRaffle a ser guardado en Firestore:', newRaffle);
 
-    console.log('[CREATE_RAFFLE_ACTION] Intentando escribir el documento de la rifa en Firestore...');
     await newRaffleRef.set(newRaffle);
-    console.log('[CREATE_RAFFLE_ACTION] Documento de la rifa escrito exitosamente.');
-    console.log(`[CREATE_RAFFLE_ACTION] LOG_VERIFICACION_SLOTPRICE: Rafa guardada en Firestore. ID: ${raffleId}, slotPrice: ${newRaffle.slotPrice} (tipo: ${typeof newRaffle.slotPrice})`);
 
-    console.log('[CREATE_RAFFLE_ACTION] Creando batch para las 100 casillas...');
     const batch = adminDb.batch();
     for (let i = 0; i < 100; i++) {
       const slotRef = adminDb.collection('raffles').doc(raffleId).collection('slots').doc(String(i));
       batch.set(slotRef, { slotNumber: i, participantName: '', status: 'available' });
     }
-    console.log('[CREATE_RAFFLE_ACTION] Batch de casillas creado. Intentando commit...');
     await batch.commit();
-    console.log('[CREATE_RAFFLE_ACTION] Commit de casillas exitoso.');
 
-    // Revalidate paths after successful creation
-    try {
-      console.log('[CREATE_RAFFLE_ACTION] Revalidando paths...');
-      revalidatePath('/dashboard', 'page');
-      revalidatePath('/', 'layout');
-      console.log('[CREATE_RAFFLE_ACTION] Paths revalidados.');
-    } catch (revalError) {
-      console.error('[CREATE_RAFFLE_ACTION] ERROR durante la revalidación de paths:', revalError);
-      // Ignore revalidation errors
-    }
+    revalidatePath('/dashboard', 'page');
+    revalidatePath('/', 'layout');
 
-    console.log('[CREATE_RAFFLE_ACTION] Acción completada con éxito.');
     return { 
       message: 'Rifa creada exitosamente!', 
       success: true, 
       raffleId: raffleId 
     };
   } catch (error) {
-    console.error('[CREATE_RAFFLE_ACTION] ERROR GENERAL en el bloque try/catch:', error);
+    console.error('[CREATE_RAFFLE_ACTION] ERROR GENERAL:', error);
     return { 
       message: error instanceof Error ? error.message : 'Error de base de datos: No se pudo crear la rifa.', 
       success: false 

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @deprecated Este componente ha sido reemplazado por el menú unificado en la página de rifa.
+ * La funcionalidad de finalización ahora está integrada en el DropdownMenu del componente principal.
+ * Se mantiene por compatibilidad si se usa en otros lugares de la aplicación.
+ */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion'; // Import for animations
 import { Flag, AlertTriangle } from 'lucide-react';

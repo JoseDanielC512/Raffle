@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { generateDetailsAction, createRaffleAction } from '@/app/actions';
+import { createRaffleAction, generateRaffleImagesAction } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,41 +9,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { IconButton } from '@/components/ui/icon-button';
 import { useAuth } from '@/context/auth-context';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Loader2, HelpCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, HelpCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-
-// Define the types for the action states
-type GenerateState = {
-  name?: string;
-  description?: string;
-  terms?: string;
-  message?: string | null;
-  errors?: Record<string, string[] | undefined> | undefined;
-};
+import { 
+  getAIGeneratedData, 
+  clearAIGeneratedData, 
+  isReturningFromGeneration,
+  type AIGeneratedData 
+} from '@/lib/ai-data-transfer';
+import ImageManager from './image-manager';
 
 type CreateState = {
   message: string | null;
   success?: boolean;
   raffleId?: string;
 };
-
-function GenerationSubmitButton({ isGenerating }: { isGenerating: boolean }) {
-  return (
-    <Button type="submit" disabled={isGenerating} className="w-full md:w-auto">
-      {isGenerating ? (
-        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...</>
-      ) : (
-        'Generar con IA'
-      )}
-    </Button>
-  );
-}
 
 function RaffleSubmitButton({ isCreating }: { isCreating: boolean }) {
   return (
@@ -68,9 +54,10 @@ export function CreateRaffleForm() {
   const [slotPrice, setSlotPrice] = useState<number>(1000); // Default value
   const [finalizationDate, setFinalizationDate] = useState<Date | undefined>();
   const [idToken, setIdToken] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [generateErrors, setGenerateErrors] = useState<Record<string, string[] | undefined> | undefined>();
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [hasGeneratedData, setHasGeneratedData] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]); // Estado para los archivos de imagen
 
   useEffect(() => {
     if (user) {
@@ -78,32 +65,123 @@ export function CreateRaffleForm() {
     }
   }, [user]);
 
-  const handleGenerateSubmit = async (formData: FormData) => {
-    setIsGenerating(true);
-    setGenerateErrors(undefined);
-    try {
-      const result: GenerateState = await generateDetailsAction({ message: null }, formData);
-      if (result.name) setName(result.name);
-      if (result.description) setDescription(result.description);
-      if (result.terms) setTerms(result.terms);
-      if (result.errors) {
-        setGenerateErrors(result.errors);
+  // Cargar datos generados al montar el componente
+  useEffect(() => {
+    if (isReturningFromGeneration()) {
+      const aiData = getAIGeneratedData();
+      if (aiData) {
+        // Cargar los datos generados en el formulario
+        if (aiData.data.name) setName(aiData.data.name);
+        if (aiData.data.description) setDescription(aiData.data.description);
+        if (aiData.data.terms) setTerms(aiData.data.terms);
+        
+        setHasGeneratedData(true);
+        
+        toast({
+          title: 'Contenido cargado',
+          description: 'Los datos generados por la IA han sido aplicados al formulario.',
+          variant: 'success',
+        });
+        
+        // Limpiar los datos del session storage después de cargarlos
+        clearAIGeneratedData();
+        
+        // Limpiar el parámetro URL
+        const url = new URL(window.location.href);
+        url.searchParams.delete('generated');
+        window.history.replaceState({}, '', url.toString());
       }
-    } catch {
+    }
+  }, []);
+
+  const handleOpenAIHelper = () => {
+    router.push('/raffle/create/ai');
+  };
+
+  const validateForm = () => {
+    const errors = [];
+    
+    if (!name.trim()) {
+      errors.push('El nombre de la rifa es requerido');
+    }
+    
+    if (!description.trim()) {
+      errors.push('La descripción es requerida');
+    }
+    
+    if (!terms.trim()) {
+      errors.push('Los términos y condiciones son requeridos');
+    }
+    
+    if (!slotPrice || slotPrice < 1) {
+      errors.push('El precio de la casilla debe ser mayor a 0');
+    }
+    
+    return errors;
+  };
+
+  const handleGenerateAIImages = async (): Promise<File[]> => {
+    if (!description.trim()) {
       toast({
-        title: 'Error de IA',
-        description: 'No se pudo generar el contenido.',
+        title: 'Descripción requerida',
+        description: 'Por favor, escribe una descripción del premio para generar las imágenes.',
         variant: 'destructive',
       });
+      return [];
+    }
+
+    setIsGeneratingImages(true);
+    try {
+      const result = await generateRaffleImagesAction(description, idToken);
+      if (result.error || !result.urls) {
+        throw new Error(result.error || 'No se recibieron URLs de las imágenes.');
+      }
+
+      toast({ title: 'Imágenes generadas', description: 'Ahora se están descargando para adjuntarlas.', variant: 'success' });
+
+      // Convert URLs to File objects
+      const files = await Promise.all(result.urls.map(async (url, index) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new File([blob], `ai-generated-${index + 1}.png`, { type: 'image/png' });
+      }));
+
+      return files;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
+      toast({
+        title: 'Error al generar imágenes',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      return []; // Return empty array on failure
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingImages(false);
     }
   };
 
   const handleCreateSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    // Validar el formulario antes de enviar
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      toast({
+        title: 'Error de validación',
+        description: validationErrors.join('. '),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsCreating(true);
     const formData = new FormData(event.currentTarget);
+
+    // Adjuntar archivos de imagen al FormData
+    imageFiles.forEach((file) => {
+      formData.append('images', file);
+    });
     
     try {
       const result: CreateState = await createRaffleAction({ message: null }, formData);
@@ -139,128 +217,113 @@ export function CreateRaffleForm() {
   const isFormDisabled = authLoading || !user;
 
   return (
-    <div className="grid gap-8 md:grid-cols-1">
-      <div className="md:col-span-1">
-        <form onSubmit={handleCreateSubmit} className="space-y-6">
-          <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group">
-            <CardHeader className="bg-muted/30 rounded-t-lg border-b border-border/50 pb-4 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 flex items-center gap-2">Detalles de la Rifa</CardTitle>
-                <CardDescription>Completa la información para tu nueva rifa.</CardDescription>
+    <div className="w-full">
+      <form onSubmit={handleCreateSubmit} className="space-y-6">
+        <Card className="bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 shadow-md hover:shadow-lg transition-all duration-300 group rounded-2xl">
+          <CardHeader className="relative overflow-hidden rounded-t-2xl border-b-transparent pb-4 flex flex-row items-center justify-between bg-gradient-to-r from-acento-fuerte/90 via-acento-fuerte/80 to-acento-calido/90 p-6 text-white">
+            {/* Efecto de brillo sutil */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-acento-calido/5 to-acento-fuerte/10 opacity-30"></div>
+            
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30">
+                <HelpCircle className="h-6 w-6 text-white" />
               </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <HelpCircle className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Generador de Contenido con IA</DialogTitle>
-                  </DialogHeader>
-                  <Card className="bg-card/80 backdrop-blur-sm border-border/60">
-                    <CardHeader>
-                      <CardDescription>Describe el premio y la IA creará los textos por ti.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-4 space-y-4">
-                      <form onSubmit={(e) => { e.preventDefault(); handleGenerateSubmit(new FormData(e.currentTarget)); }} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="prompt">¿Qué vas a rifar?</Label>
-                          <Textarea
-                            id="prompt"
-                            name="prompt"
-                            placeholder="Ej: Una consola PS5 nueva con dos controles y el juego Spider-Man 2."
-                            className="min-h-[100px]"
-                            disabled={isFormDisabled || isGenerating}
-                          />
-                          {generateErrors?.prompt && (
-                            <p className="text-sm text-acento-calido">{generateErrors.prompt.join(', ')}</p>
-                          )}
-                        </div>
-                        <GenerationSubmitButton isGenerating={isGenerating} />
-                      </form>
-                    </CardContent>
-                  </Card>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-4">
-              {isFormDisabled && (
-                <p className="text-sm text-center text-acento-calido bg-acento-calido/10 p-3 rounded-md border border-acento-calido/30">
-                  Debes iniciar sesión para poder crear una rifa.
-                </p>
+              <div className="flex-1">
+                <CardTitle className="text-xl md:text-2xl font-bold text-white">
+                  Detalles de la Rifa
+                </CardTitle>
+              </div>
+            </div>
+            <IconButton
+              type="button"
+              icon={hasGeneratedData ? <Sparkles className="h-4 w-4" /> : <HelpCircle className="h-4 w-4" />}
+              onClick={handleOpenAIHelper}
+              tooltip={hasGeneratedData ? "Editar contenido generado" : "Generar contenido con IA"}
+              tooltipSide="bottom"
+              aria-label={hasGeneratedData ? "Editar contenido generado" : "Generar contenido con IA"}
+              className={cn(
+                "relative z-20 backdrop-blur-sm transition-all duration-200",
+                hasGeneratedData 
+                  ? "bg-green-500/20 hover:bg-green-500/30 text-green-100 border-green-400/30" 
+                  : "bg-white/20 hover:bg-white/30 text-white border-white/30"
               )}
-              <input type="hidden" name="idToken" value={idToken} />
-              <input type="hidden" name="finalizationDate" value={finalizationDate ? finalizationDate.toISOString() : ''} />
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre de la Rifa</Label>
-                <Input 
-                  id="name" 
-                  name="name" 
-                  placeholder="Rifa Increíble de PS5"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={isFormDisabled || isCreating}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="slotPrice">Precio de la Casilla (COP)</Label>
-                <Input 
-                  id="slotPrice" 
-                  name="slotPrice" 
-                  type="number"
-                  placeholder="1000"
-                  value={slotPrice}
-                  onChange={(e) => setSlotPrice(Number(e.target.value))}
-                  disabled={isFormDisabled || isCreating}
-                  min="1"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Describe los detalles emocionantes de tu rifa aquí."
-                  className="min-h-[120px]"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={isFormDisabled || isCreating}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="terms">Términos y Condiciones</Label>
-                <Textarea
-                  id="terms"
-                  name="terms"
-                  placeholder="Define las reglas: fecha del sorteo, cómo se elegirá al ganador, etc."
-                  className="min-h-[100px]"
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  disabled={isFormDisabled || isCreating}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Fecha de Finalización (Opcional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        'w-full justify-start text-left font-normal',
-                        !finalizationDate && 'text-muted-foreground'
-                      )}
-                      disabled={isFormDisabled || isCreating}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {finalizationDate ? format(finalizationDate, 'PPP', { locale: es }) : <span>Seleccionar una fecha</span>}
-                    </Button>
-                  </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+            />
+          </CardHeader>
+          <CardContent className="pt-4 space-y-4">
+            {isFormDisabled && (
+              <p className="text-sm text-center text-acento-calido bg-acento-calido/10 p-3 rounded-md border border-acento-calido/30">
+                Debes iniciar sesión para poder crear una rifa.
+              </p>
+            )}
+            <input type="hidden" name="idToken" value={idToken} />
+            <input type="hidden" name="finalizationDate" value={finalizationDate ? finalizationDate.toISOString() : ''} />
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre de la Rifa</Label>
+              <Input 
+                id="name" 
+                name="name" 
+                placeholder="Rifa Increíble de PS5"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={isFormDisabled || isCreating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slotPrice">Precio de la Casilla (COP)</Label>
+              <Input 
+                id="slotPrice" 
+                name="slotPrice" 
+                type="number"
+                placeholder="1000"
+                value={slotPrice}
+                onChange={(e) => setSlotPrice(Number(e.target.value))}
+                disabled={isFormDisabled || isCreating}
+                min="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="Describe los detalles emocionantes de tu rifa aquí."
+                className="min-h-[120px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isFormDisabled || isCreating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="terms">Términos y Condiciones</Label>
+              <Textarea
+                id="terms"
+                name="terms"
+                placeholder="Define las reglas: fecha del sorteo, cómo se elegirá al ganador, etc."
+                className="min-h-[100px]"
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                disabled={isFormDisabled || isCreating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Fecha de Finalización (Opcional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !finalizationDate && 'text-muted-foreground'
+                    )}
+                    disabled={isFormDisabled || isCreating}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {finalizationDate ? format(finalizationDate, 'PPP', { locale: es }) : <span>Seleccionar una fecha</span>}
+                  </Button>
+                </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start" sideOffset={4}>
+                    <div className="bg-card/95 backdrop-blur-sm border border-acento-calido/20 rounded-lg shadow-lg">
                       <Calendar
                         mode="single"
                         selected={finalizationDate}
@@ -270,15 +333,26 @@ export function CreateRaffleForm() {
                         }
                         initialFocus
                         locale={es}
+                        className="rounded-lg bg-transparent"
                       />
-                    </PopoverContent>
-                </Popover>
-              </div>
-            </CardContent>
-          </Card>
-          <RaffleSubmitButton isCreating={isCreating} />
-        </form>
-      </div>
+                    </div>
+                  </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>Imágenes de la Rifa</Label>
+              <ImageManager 
+                onImagesChange={setImageFiles} 
+                onGenerateAI={handleGenerateAIImages}
+                isGenerating={isGeneratingImages || isCreating}
+              />
+            </div>
+            <div className="pt-6">
+              <RaffleSubmitButton isCreating={isCreating} />
+            </div>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 }

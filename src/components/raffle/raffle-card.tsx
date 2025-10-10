@@ -22,12 +22,12 @@ export default function RaffleCard({ raffle }: RaffleCardProps) {
   return (
     <Card className="group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl bg-card/80 backdrop-blur-sm border-border/60 shadow-lg rounded-2xl">
       {/* Fondo con degradado sutil en hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-acento-fuerte/5 via-transparent to-acento-calido/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-acento-fuerte/5 via-transparent to-acento-calido/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
       
       {/* Efecto de brillo en hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out rounded-2xl"></div>
       
-      <CardHeader className="pb-4 relative z-10 bg-gradient-to-r from-acento-fuerte/90 via-acento-fuerte/80 to-acento-calido/90 p-6 text-white rounded-t-lg">
+      <CardHeader className="pb-4 relative z-10 bg-gradient-to-r from-acento-fuerte/90 via-acento-fuerte/80 to-acento-calido/90 p-6 text-white rounded-t-2xl">
         <div className="flex justify-between items-start">
             <CardTitle className="text-lg font-semibold text-white flex items-center gap-2 group-hover:text-white transition-colors duration-300">{raffle.name}</CardTitle>
             <Badge 

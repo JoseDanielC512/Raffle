@@ -12,12 +12,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Flag, Info } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
@@ -36,6 +35,7 @@ import {
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
+import { formatCurrencyCOP } from "@/lib/utils";
 
 type RaffleTableProps = {
   raffles: (Raffle & { filledSlots?: number; winnerName?: string })[];
@@ -89,6 +89,7 @@ function FinalizeRaffleMenuItem({ raffle }: { raffle: Raffle }) {
           }
         }}
       >
+        <Flag className="mr-2 h-4 w-4" />
         Finalizar
       </DropdownMenuItem>
     );
@@ -100,6 +101,7 @@ function FinalizeRaffleMenuItem({ raffle }: { raffle: Raffle }) {
         e.preventDefault();
         setShowConfirmDialog(true);
       }}>
+        <Flag className="mr-2 h-4 w-4" />
         Finalizar
       </DropdownMenuItem>
 
@@ -147,12 +149,11 @@ export function RaffleTable({ raffles }: RaffleTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nombre de la Rifa</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Casillas Vendidas</TableHead>
-            <TableHead>
-              <span className="sr-only">Acciones</span>
-            </TableHead>
+            <TableHead className="font-semibold">Nombre de la Rifa</TableHead>
+            <TableHead className="font-semibold">Precio</TableHead>
+            <TableHead className="font-semibold">Estado</TableHead>
+            <TableHead className="font-semibold">Casillas Vendidas</TableHead>
+            <TableHead className="font-semibold">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -163,6 +164,7 @@ export function RaffleTable({ raffles }: RaffleTableProps) {
             return (
               <TableRow key={raffle.id}>
                 <TableCell className="font-medium">{raffle.name}</TableCell>
+                <TableCell className="font-medium">{formatCurrencyCOP(raffle.slotPrice)}</TableCell>
                 <TableCell>
                   <Badge variant={raffle.status === 'finalized' ? "destructive" : "secondary"}>
                     {raffle.status === 'finalized' ? "Finalizada" : "Activa"}
@@ -172,15 +174,28 @@ export function RaffleTable({ raffles }: RaffleTableProps) {
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button 
+                        aria-haspopup="true" 
+                        size="icon" 
+                        variant="outline"
+                        className="relative overflow-hidden group hover:bg-acento-fuerte hover:border-acento-fuerte transition-all duration-300"
+                      >
+                        <MoreHorizontal className="h-4 w-4 relative z-10 group-hover:rotate-90 transition-transform duration-300 group-hover:text-white" />
                         <span className="sr-only">Toggle menu</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <Link href={`/raffle/${raffle.id}`}>Ver Tablero</Link>
+                        <Link href={`/raffle/${raffle.id}`}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Ver Tablero
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/raffle/${raffle.id}/details`}>
+                          <Info className="mr-2 h-4 w-4" />
+                          Ver Detalles
+                        </Link>
                       </DropdownMenuItem>
                       
                       {canEdit && (
@@ -192,6 +207,7 @@ export function RaffleTable({ raffles }: RaffleTableProps) {
                           currentFinalizationDate={raffle.finalizationDate}
                         >
                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
                         </EditRaffleDialog>

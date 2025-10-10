@@ -2,7 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
-import { motion, ForwardRefComponent, HTMLMotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -64,20 +64,35 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-// Create a Motion-enabled version of the base Button
-const MotionEnabledButton: ForwardRefComponent<HTMLButtonElement, ButtonProps & HTMLMotionProps<"button">> = motion(Button);
-
 // Pre-configured MotionButton with animations
-const MotionButton = React.forwardRef<HTMLButtonElement, ButtonProps & HTMLMotionProps<"button">>(
-  (props, ref) => (
-    <MotionEnabledButton
-      ref={ref}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      {...props}
-    />
-  )
+const MotionButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, loading, children, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    
+    const content = (
+      <>
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {children}
+      </>
+    );
+
+    return (
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        <Comp
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          disabled={loading || props.disabled}
+          {...props}
+        >
+          {asChild ? <span>{content}</span> : content}
+        </Comp>
+      </motion.div>
+    );
+  }
 );
 MotionButton.displayName = "MotionButton";
 

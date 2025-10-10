@@ -20,6 +20,7 @@ export type Raffle = {
   finalizationDate: string | null; // Fecha de finalización programada
   slotPrice: number; // Precio de la casilla, obligatorio
   activityHistory?: RaffleActivity[]; // Array of activity logs
+  imageUrls?: string[]; // URLs de las imágenes de la rifa
 };
 
 export type RaffleActivity = {

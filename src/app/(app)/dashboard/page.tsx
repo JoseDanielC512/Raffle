@@ -19,8 +19,20 @@ import { formatCurrencyCOP } from "@/lib/utils";
 
 function DashboardSkeleton() {
   return (
-    <div className="mt-8">
-      <Skeleton className="h-48 w-full rounded-lg" />
+    <div className="group relative overflow-hidden bg-card/80 backdrop-blur-sm border border-border shadow-lg rounded-2xl">
+      {/* Fondo con degradado base */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-acento-calido/5 to-acento-fuerte/10 opacity-50"></div>
+      
+      <div className="relative z-10 p-6">
+        <div className="space-y-6">
+          <Skeleton className="h-7 w-64 rounded-lg" />
+          <div className="space-y-3">
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -130,40 +142,71 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
         <div className="lg:col-span-3">
           {isLoading ? (
-            <DashboardSkeleton />
+            <motion.div
+              whileHover={{ scale: 1.01, y: -1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="group relative overflow-hidden bg-card/80 backdrop-blur-sm border border-border shadow-lg rounded-2xl"
+            >
+              {/* Fondo con degradado */}
+              <div className="absolute inset-0 bg-gradient-to-br from-acento-fuerte/10 via-acento-fuerte/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-acento-calido/5 to-acento-fuerte/10 opacity-50"></div>
+              
+              {/* Efecto de brillo en hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+              
+              <div className="relative z-10 p-6">
+                <DashboardSkeleton />
+              </div>
+            </motion.div>
           ) : raffles.length > 0 ? (
-            <RaffleTable raffles={raffles} />
+            <motion.div
+              whileHover={{ scale: 1.01, y: -1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="group relative overflow-hidden bg-card/80 backdrop-blur-sm border border-border shadow-lg rounded-2xl"
+            >
+              {/* Fondo con degradado */}
+              <div className="absolute inset-0 bg-gradient-to-br from-acento-fuerte/10 via-acento-fuerte/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-acento-calido/5 to-acento-fuerte/10 opacity-50"></div>
+              
+              {/* Efecto de brillo en hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+              
+              <div className="relative z-10 p-6">
+                <RaffleTable raffles={raffles} />
+              </div>
+            </motion.div>
           ) : (
-            <div className="text-center py-16 md:py-24 bg-card border-2 border-dashed border-border rounded-xl shadow-soft">
-              <h2 className="text-2xl font-semibold text-secondary mb-4">¡Aún no hay rifas!</h2>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Comienza tu primera rifa para empezar a vender casillas.
-              </p>
-              {stats.canCreateRaffle && (
-                <Button asChild>
-                  <Link href="/raffle/create">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Crear mi Primera Rifa
-                  </Link>
-                </Button>
-              )}
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.02, y: -1 }}
+              className="group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl bg-card/90 backdrop-blur-sm border border-border shadow-lg rounded-2xl"
+            >
+              {/* Fondo con degradado sutil para el estado vacío */}
+              <div className="absolute inset-0 bg-gradient-to-br from-acento-fuerte/5 via-transparent to-acento-calido/3 opacity-70 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              {/* Efecto de brillo en hover más sutil para estado vacío */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+              
+              <div className="relative z-10 p-6">
+                <div className="text-center py-16 md:py-24">
+                  <h2 className="text-2xl font-semibold text-foreground mb-4">¡Aún no hay rifas!</h2>
+                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                    Comienza tu primera rifa para empezar a vender casillas.
+                  </p>
+                  {stats.canCreateRaffle && (
+                    <Button asChild size="lg" className="min-w-[200px]">
+                      <Link href="/raffle/create" className="inline-flex items-center justify-center">
+                        <PlusCircle className="mr-3 h-5 w-5 flex-shrink-0" />
+                        <span>Crear mi Primera Rifa</span>
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           )}
         </div>
 
-        <motion.aside 
-          className="lg:col-span-1 grid grid-cols-2 gap-6"
-          initial="hidden"
-          animate="show"
-          variants={{
-            hidden: { opacity: 0 },
-            show: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.1,
-              },
-            },
-          }}
-        >
+        <aside className="lg:col-span-1 grid grid-cols-2 gap-6">
           <StatCard 
             title="Rifas Activas" 
             value={stats.activeRafflesCount} 
@@ -191,7 +234,7 @@ export default function Dashboard() {
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} 
             isLoading={isLoading}
           />
-        </motion.aside>
+        </aside>
       </div>
     </div>
   );

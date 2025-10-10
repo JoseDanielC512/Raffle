@@ -2,6 +2,14 @@
 
 @tailwind base;
 @tailwind components;
+
+@layer components {
+  /* Ocultar el ícono de revelación de contraseña nativo */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-webkit-password-reveal-button {
+    display: none;
+  }
+}
 @tailwind utilities;
 
 @layer base {
@@ -57,7 +65,7 @@
 
     --border: rgb(var(--primario-oscuro-rgb) / 0.2);    /* Borde sutil usando el color oscuro con opacidad */
     --input: rgb(var(--primario-oscuro-rgb) / 0.2);
-    --ring: var(--acento-fuerte);              /* Anillo de foco en el acento fuerte */
+    --ring: var(--acento-fuerte);
 
     --radius: 0.5rem;
   }
@@ -177,10 +185,20 @@
   }
   
   .bg-gradient-text {
-    background: linear-gradient(135deg, var(--barra-principal) 0%, var(--primario-oscuro) 50%, var(--acento-fuerte) 100%);
+    background: linear-gradient(135deg, var(--primario-oscuro) 0%, var(--barra-principal) 50%, var(--acento-fuerte) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .hero-title-gradient {
+    color: var(--slot-winning);
+    text-shadow:
+      -1px -1px 0 var(--barra-principal),
+      1px -1px 0 var(--barra-principal),
+      -1px 1px 0 var(--barra-principal),
+      1px 1px 0 var(--barra-principal);
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
   }
 
   /* Fondo pattern para páginas de autenticación */
@@ -211,7 +229,7 @@
     z-index: 2;
   }
 
-  /* Fondo pattern para página de inicio */
+  /* Fondo pattern para página de inicio - Efecto gota de agua */
   .home-pattern-bg {
     background-image: url('/fondo-dani.png');
     background-repeat: repeat;
@@ -226,16 +244,68 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg,
-      rgba(164, 36, 59, 0.01) 0%,    /* acento-fuerte con 1% opacidad */
-      rgba(216, 151, 60, 0.005) 50%,  /* barra-principal con 0.5% opacidad */
-      rgba(216, 201, 155, 0.002) 100% /* fondo-base con 0.2% opacidad */
-    );
+    background-color: rgba(216, 201, 155, 0.85);
     z-index: 1;
   }
-  
+
   .home-pattern-content {
     position: relative;
-    z-index: 2;
+    z-index: 3;
+  }
+
+  /* Scroll personalizado y discreto para diálogos */
+  .scrollbar-discreto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(39, 62, 71, 0.2) transparent;
+  }
+
+  .scrollbar-discreto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-discreto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-discreto::-webkit-scrollbar-thumb {
+    background-color: rgba(39, 62, 71, 0.2);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-discreto::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(39, 62, 71, 0.3);
+  }
+
+  .scrollbar-discreto::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Aplicar scroll personalizado a ScrollArea */
+  [data-orientation="vertical"] .scrollbar-discreto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(39, 62, 71, 0.2) transparent;
+  }
+
+  [data-orientation="vertical"] .scrollbar-discreto::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  [data-orientation="vertical"] .scrollbar-discreto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  [data-orientation="vertical"] .scrollbar-discreto::-webkit-scrollbar-thumb {
+    background-color: rgba(39, 62, 71, 0.2);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  [data-orientation="vertical"] .scrollbar-discreto::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(39, 62, 71, 0.3);
+  }
+
+  [data-orientation="vertical"] .scrollbar-discreto::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }

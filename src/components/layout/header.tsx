@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { CircleUser, Loader2, List, User, Settings } from 'lucide-react';
+import { CircleUser, Loader2, List, User, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +52,7 @@ export function Header({ className, showAuthButtons = true }: { className?: stri
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center transition-transform hover:scale-105">
             <Image 
-              src="/static/logo.png" 
+              src="/logo.png" 
               alt="Lucky 100 Logo" 
               width={80} 
               height={80} 
@@ -132,7 +132,10 @@ export function Header({ className, showAuthButtons = true }: { className?: stri
                           Cerrando sesión...
                         </>
                       ) : (
-                        'Cerrar Sesión'
+                        <>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Cerrar Sesión
+                        </>
                       )}
                     </DropdownMenuItem>
                   </DropdownMenuContent>

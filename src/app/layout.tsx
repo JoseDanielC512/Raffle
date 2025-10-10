@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientWrapper from "@/components/layout/client-wrapper";
-import { Header } from "@/components/layout/header";
 import { LogoutCoordinationProvider } from "@/context/logout-coordination-context";
 
 export const metadata: Metadata = {
   title: "Lucky 100",
   description: "Create and manage 100-slot raffles with ease.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

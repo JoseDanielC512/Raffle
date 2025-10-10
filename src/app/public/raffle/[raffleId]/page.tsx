@@ -168,7 +168,6 @@ export default function PublicRafflePage() {
                 raffle={raffle} 
                 slots={slots} 
                 isOwner={false} 
-                onInfoClick={() => setIsInfoDialogOpen(true)}
               />
             </motion.section>
           </AnimatePresence>

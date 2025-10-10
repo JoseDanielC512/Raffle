@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Link, WifiOff } from 'lucide-react';
+import { ArrowLeft, Pencil, WifiOff, Share2, Trophy, Info } from 'lucide-react';
 import { doc, onSnapshot, collection } from 'firebase/firestore';
 import { motion } from "framer-motion";
 
@@ -10,62 +10,76 @@ import { db } from '@/lib/firebase';
 import type { Raffle, RaffleSlot, RaffleActivity } from '@/lib/definitions';
 import RaffleBoard from '@/components/raffle/raffle-board';
 import RaffleInfoDialog from '@/components/raffle/RaffleInfoDialog';
-import ActivityHistory from '@/components/raffle/activity-history';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
 import EditRaffleDialog from '@/components/raffle/EditRaffleDialog';
-import FinalizeRaffleButton from '@/components/raffle/FinalizeRaffleButton';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { IconButton } from '@/components/ui/icon-button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { AlertTriangle } from 'lucide-react';
+import DeclareWinnerDialog from '@/components/raffle/DeclareWinnerDialog';
+
+// Función para truncar texto solo para visualización
+const truncateText = (text: string, maxLength: number) => {
+  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+};
 
 function RafflePageSkeleton() {
+
   return (
-    <div className="min-h-screen relative overflow-y-auto bg-gradient-raffle text-primario-oscuro">
-      {/* Animated CSS Background - Same as public view */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
-      </div>
-      
-      <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
-        {/* Header Skeleton */}
-        <div className="flex flex-row flex-wrap items-center gap-4 pb-6 border-b border-border/50">
-          <div className="flex items-center gap-3 flex-grow min-w-0">
-            <Skeleton className="w-12 h-12 rounded-xl flex-shrink-0" />
-            <div className="space-y-3 flex-1 min-w-0">
-              <Skeleton className="h-10 w-3/4 rounded" />
-              <Skeleton className="h-6 w-full rounded" />
-            </div>
+    <div className="w-full max-w-6xl mx-auto space-y-6">
+      {/* Header Skeleton */}
+      <div className="flex flex-row flex-wrap items-center gap-4 pb-6 border-b border-border/50">
+        <div className="flex items-center gap-3 flex-grow min-w-0">
+          <Skeleton className="w-12 h-12 rounded-xl flex-shrink-0" />
+          <div className="space-y-3 flex-1 min-w-0">
+            <Skeleton className="h-10 w-3/4 rounded" />
+            <Skeleton className="h-6 w-full rounded" />
           </div>
         </div>
+      </div>
 
-        <div className="space-y-8">
-          {/* Board Skeleton */}
-          <section className="w-full">
-            <div className="relative">
-              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl blur-xl"></div>
-              <div className="bg-gradient-to-br from-background to-muted/10 backdrop-blur-lg border-border/20 shadow-2xl rounded-2xl overflow-hidden p-6 md:p-8">
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <Skeleton className="h-10 w-48 rounded" />
-                    <Skeleton className="h-8 w-24 rounded-full" />
-                  </div>
-                  <div className="grid grid-cols-10 gap-2 md:gap-3 max-w-3xl mx-auto">
-                    {Array.from({ length: 100 }).map((_, i) => (
-                      <Skeleton key={i} className="aspect-square rounded-lg" />
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-4 justify-center">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-8 w-24 rounded-full" />
-                    ))}
-                  </div>
+      <div className="space-y-8">
+        {/* Board Skeleton */}
+        <section className="w-full">
+          <div className="relative">
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl blur-xl"></div>
+            <div className="bg-gradient-to-br from-background to-muted/10 backdrop-blur-lg border-border/20 shadow-2xl rounded-2xl overflow-hidden p-6 md:p-8">
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-10 w-48 rounded" />
+                  <Skeleton className="h-8 w-24 rounded-full" />
+                </div>
+                <div className="grid grid-cols-10 gap-2 md:gap-3 max-w-3xl mx-auto">
+                  {Array.from({ length: 100 }).map((_, i) => (
+                    <Skeleton key={i} className="aspect-square rounded-lg" />
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-24 rounded-full" />
+                  ))}
                 </div>
               </div>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -79,6 +93,8 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(true);
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showWinnerDialog, setShowWinnerDialog] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const resolvedParams = use(params);
@@ -119,6 +135,7 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
       });
     });
   }, [raffle, toast]); // Cambiado de raffle.id a raffle para satisfacer a TypeScript
+
 
   // Verificar autenticación y redirigir si es necesario
   useEffect(() => {
@@ -260,98 +277,94 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
 
   const isOwner = user?.uid === raffle.ownerId;
 
+  // Lógica para determinar si se puede finalizar la rifa
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalizar a mediodía para comparar solo fechas
+
+  const isFinalizationDate =
+    raffle.finalizationDate &&
+    new Date(raffle.finalizationDate).toDateString() === today.toDateString();
+
+  const canFinalize = isOwner && !raffle.finalizedAt && isFinalizationDate;
+
+  const handleConfirmFinalize = () => {
+    setShowConfirmDialog(false);
+    setShowWinnerDialog(true);
+  };
+
+  const handleFinalizationSuccess = () => {
+    // Show success toast
+    toast({
+      title: "¡Rifa finalizada!",
+      description: "La rifa ha sido finalizada exitosamente y el ganador ha sido declarado.",
+      variant: "success",
+    });
+  };
+
+  const handleFinalizeRaffle = () => {
+    if (!canFinalize) {
+      if (!isFinalizationDate) {
+        toast({
+          title: 'Fecha no válida',
+          description: 'Solo puedes finalizar la rifa en la fecha de finalización programada.',
+          variant: 'destructive',
+        });
+      } else if (!isOwner) {
+        toast({
+          title: 'Permiso denegado',
+          description: 'Solo el propietario puede finalizar la rifa.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+    setShowConfirmDialog(true);
+  };
+
   return (
-    <div className="min-h-screen relative overflow-y-auto bg-gradient-raffle text-primario-oscuro">
-      {/* Animated CSS Background - Same as public view */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/10 to-black/40 animate-pulse-slow"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIgZD0iTTM2IDM0djJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnpNNDggNDh2LTJoLTJ2LTJoMnYyem0wLTR2MmgtMnYtMmgydjJ6bTAtNHYyaC0ydi0yaDJ2MnoiLz48L2c+PC9zdmc+')] opacity-20"></div>
-      </div>
-      
-      <div className="relative z-10 container mx-auto px-4 py-8 md:px-8 lg:px-12 max-w-7xl space-y-12">
-        {/* Indicador de Conexión */}
-        {!isLiveConnected && (
-          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-            <WifiOff className="h-4 w-4" />
-            <AlertDescription>
-              Conexión en tiempo real perdida. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones del navegador que puedan bloquear la conexión.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pb-8 border-b border-primario-oscuro/20"
-        >
-          <div className="flex items-center gap-6 flex-wrap">
-            {/* Back Button */}
-            <IconButton
-              onClick={() => router.push('/dashboard')}
-              icon={<ArrowLeft className="h-5 w-5" />}
-              tooltip="Volver al Dashboard"
-              tooltipSide="bottom"
-              aria-label="Volver al dashboard"
-              className="bg-acento-fuerte/10 hover:bg-acento-fuerte/20 text-primario-oscuro border-acento-fuerte/30 shadow-md hover:shadow-lg transition-all duration-300"
-            />
-
-            {/* Animated Icon */}
-            <motion.div 
-              className="w-20 h-20 bg-gradient-icon rounded-2xl flex items-center justify-center shadow-2xl shadow-acento-fuerte/50 flex-shrink-0"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              whileHover={{ scale: 1.1, rotate: 15, transition: { duration: 0.3 } }}
-            >
-              <motion.span 
-                className="text-white text-3xl"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                🎲
-              </motion.span>
-            </motion.div>
-            
-            <div className="space-y-2 flex-1 min-w-0">
-              <motion.h1 
-                className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline bg-gradient-text drop-shadow-lg"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              >
-                {raffle.name}
-              </motion.h1>
-              <motion.p 
-                className="text-lg sm:text-xl text-primario-oscuro/80 leading-relaxed font-light"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-              >
-                {raffle.description}
-              </motion.p>
-            </div>
-          </div>
-
-          {/* Action Buttons Group - Only visible to owner */}
-          {isOwner && (
-            <motion.div 
-              className="flex items-center gap-3 flex-shrink-0"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              {/* Copy Link Button */}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <IconButton
+          onClick={() => router.push('/dashboard')}
+          icon={<ArrowLeft className="h-5 w-5" />}
+          tooltip="Volver al Dashboard"
+          tooltipSide="bottom"
+          aria-label="Volver al dashboard"
+        />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold font-headline truncate">{raffle.name}</h1>
+          <p className="text-primario-oscuro/60 text-sm md:text-base mt-1">
+            {truncateText(raffle.description, 150)}
+          </p>
+        </div>
+        
+        {/* Action Menu - Only visible to owner */}
+        {isOwner && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <IconButton
-                onClick={handleCopyPublicUrl}
-                icon={<Link className="h-5 w-5" />}
-                tooltip="Copiar enlace público"
+                icon={
+                  <motion.span 
+                    className="text-white text-xl"
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    🎲
+                  </motion.span>
+                }
+                tooltip="Acciones de la rifa"
                 tooltipSide="bottom"
-                aria-label="Copiar enlace público"
-                className="bg-acento-calido/10 hover:bg-acento-calido/20 text-primario-oscuro border-acento-calido/30 shadow-md hover:shadow-lg transition-all duration-300"
+                aria-label="Acciones de la rifa"
+                className="bg-gradient-icon hover:scale-105 text-white border-acento-fuerte/30 shadow-lg hover:shadow-xl transition-all duration-300"
               />
-
-              {/* Edit Button - Only visible if raffle is not finalized */}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[200px]">
+              <DropdownMenuItem onClick={handleCopyPublicUrl}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Compartir rifa
+              </DropdownMenuItem>
+              
               {!raffle.finalizedAt && (
                 <EditRaffleDialog
                   raffleId={raffle.id}
@@ -360,54 +373,94 @@ export default function RafflePage({ params }: { params: Promise<{ id: string }>
                   currentSlotPrice={raffle.slotPrice}
                   currentFinalizationDate={raffle.finalizationDate}
                 >
-                  <IconButton
-                    icon={<Pencil className="h-5 w-5" />}
-                    tooltip="Editar rifa"
-                    tooltipSide="bottom"
-                    aria-label="Editar rifa"
-                    className="bg-acento-fuerte/10 hover:bg-acento-fuerte/20 text-primario-oscuro border-acento-fuerte/30 shadow-md hover:shadow-lg transition-all duration-300"
-                  />
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar rifa
+                  </DropdownMenuItem>
                 </EditRaffleDialog>
               )}
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Tablero Full-Width */}
-        <section className="w-full">
-          <RaffleBoard
-            raffle={raffle}
-            slots={slots}
-            isOwner={isOwner}
-            onSlotUpdate={handleSlotUpdate}
-            onInfoClick={() => setIsInfoDialogOpen(true)}
-          />
-        </section>
-
-        {/* Historial de Actividad */}
-        <section className="w-full">
-          <ActivityHistory activities={activities} />
-        </section>
-
-        {/* Panel de Finalización - Solo visible para el dueño en la fecha correcta */}
-        {isOwner && (
-          <div className="w-full">
-            <FinalizeRaffleButton raffle={raffle} isOwner={isOwner} />
-          </div>
+              
+              <DropdownMenuItem onClick={handleFinalizeRaffle}>
+                <Trophy className="mr-2 h-4 w-4" />
+                Finalizar rifa
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => router.push(`/raffle/${resolvedParams.id}/details`)}>
+                <Info className="mr-2 h-4 w-4" />
+                Ver detalles
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
-
-        {/* Diálogo de Información de la Rifa */}
-          <RaffleInfoDialog
-            open={isInfoDialogOpen}
-            onOpenChange={setIsInfoDialogOpen}
-            terms={raffle.terms}
-            slotPrice={raffle.slotPrice}
-            ownerName={raffle.ownerName}
-            winnerName={winnerName || undefined}
-            winnerSlotNumber={raffle.winnerSlotNumber || undefined}
-            isFinalized={!!raffle.finalizedAt}
-          />
       </div>
+
+      {/* Indicador de Conexión */}
+      {!isLiveConnected && (
+        <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+          <WifiOff className="h-4 w-4" />
+          <AlertDescription>
+            Conexión en tiempo real perdida. Los datos podrían no estar actualizados. Por favor, revisa tu conexión a internet o desactiva extensiones del navegador que puedan bloquear la conexión.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Tablero Full-Width */}
+      <section className="w-full">
+        <RaffleBoard
+          raffle={raffle}
+          slots={slots}
+          isOwner={isOwner}
+          onSlotUpdate={handleSlotUpdate}
+        />
+      </section>
+
+
+      {/* Diálogo de Información de la Rifa */}
+      <RaffleInfoDialog
+        open={isInfoDialogOpen}
+        onOpenChange={setIsInfoDialogOpen}
+        terms={raffle.terms}
+        slotPrice={raffle.slotPrice}
+        ownerName={raffle.ownerName}
+        winnerName={winnerName || undefined}
+        winnerSlotNumber={raffle.winnerSlotNumber || undefined}
+        isFinalized={!!raffle.finalizedAt}
+      />
+
+      {/* Diálogo de Confirmación para Finalizar Rifa */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-xs min-h-[40vh] p-4 sm:p-6 sm:max-w-[425px] rounded-lg bg-background border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-primario-oscuro">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Estás absolutamente seguro?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Esta acción es irreversible. Una vez que declares el ganador, la rifa se
+              finalizará permanentemente y no podrás realizar más cambios.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="space-y-2 sm:space-y-0">
+            <AlertDialogCancel className="w-full sm:w-auto mt-4 sm:mt-0">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmFinalize}
+              className="w-full sm:w-auto"
+            >
+              Sí, finalizar rifa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo para Declarar Ganador */}
+      <DeclareWinnerDialog
+        raffleId={raffle.id}
+        open={showWinnerDialog}
+        onOpenChange={setShowWinnerDialog}
+        onSuccess={handleFinalizationSuccess}
+      />
     </div>
   );
 }

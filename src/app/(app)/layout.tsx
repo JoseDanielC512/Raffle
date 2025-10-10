@@ -1,18 +1,10 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useAuth } from "@/context/auth-context";
 import { Header } from "@/components/layout/header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { authStatus, loading } = useAuth();
-  const pathname = usePathname();
-
-  // Determine if the current page is a raffle detail page using a regex.
-  // This ensures that only pages with a raffle ID (e.g., /raffle/someId123)
-  // get the immersive layout, excluding pages like /raffle/create.
-  const raffleDetailPageRegex = /^\/raffle\/[a-zA-Z0-9]{20,}$/;
-  const isRafflePage = raffleDetailPageRegex.test(pathname);
 
   // Show a loading spinner while checking authentication status
   if (loading || authStatus === 'checking') {
@@ -28,19 +20,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // If the user is authenticated, render the protected layout with its children.
   if (authStatus === 'authenticated') {
-    // If it's the raffle detail page, render children directly without padding or extra divs
-    // to allow for an immersive, full-screen experience.
-    if (isRafflePage) {
-      return <>{children}</>;
-    }
-
-    // For all other authenticated pages (like the dashboard), use the standard layout with padding.
+    // For all authenticated pages, use the standard layout with padding
     return (
-      <div className="flex flex-col w-full h-full">
-        <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
-          {children}
-        </main>
+      <div className="min-h-screen flex flex-col">
+        <div className="fixed inset-0 home-pattern-bg z-0" />
+        <div className="relative z-10 min-h-screen flex flex-col home-pattern-content">
+          <Header />
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
     );
   }
