@@ -133,8 +133,12 @@ const GenerateDetailsSchema = z.object({
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function generateDetailsAction(prevState: GenerateDetailsState, formData: FormData): Promise<GenerateDetailsState> {
+  console.log('🚀 [SERVER_ACTION] Iniciando generateDetailsAction');
+  console.log('📋 [SERVER_ACTION] FormData recibido:', Object.fromEntries(formData.entries()));
+  
   const validatedFields = GenerateDetailsSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
+    console.error('❌ [SERVER_ACTION] Error de validación:', validatedFields.error.flatten());
     return { 
       message: 'La validación falló.', 
       errors: validatedFields.error.flatten().fieldErrors 
@@ -142,11 +146,29 @@ export async function generateDetailsAction(prevState: GenerateDetailsState, for
   }
 
   const { prompt } = validatedFields.data;
+  console.log('✅ [SERVER_ACTION] Validación exitosa');
+  console.log('📝 [SERVER_ACTION] Prompt extraído:', prompt);
   
   try {
-    // Llama al flujo real de Genkit para generar el contenido.
+    console.log('🔄 [SERVER_ACTION] Importando flujo de generación de detalles...');
     const { generateRaffleDetails } = await import('@/ai/flows/generate-raffle-details');
+    console.log('✅ [SERVER_ACTION] Flujo importado exitosamente');
+    
+    console.log('🤖 [SERVER_ACTION] Llamando al flujo de IA...');
+    const startTime = Date.now();
+    
     const result = await generateRaffleDetails({ prompt });
+    
+    const endTime = Date.now();
+    console.log('⏱️ [SERVER_ACTION] Tiempo total del flujo:', `${endTime - startTime}ms`);
+    console.log('✅ [SERVER_ACTION] Resultado recibido del flujo:', {
+      hasName: !!result.name,
+      hasDescription: !!result.description,
+      hasTerms: !!result.terms,
+      nameLength: result.name?.length || 0,
+      descriptionLength: result.description?.length || 0,
+      termsLength: result.terms?.length || 0
+    });
 
     return {
       name: result.name,
@@ -155,11 +177,68 @@ export async function generateDetailsAction(prevState: GenerateDetailsState, for
       message: 'Contenido generado exitosamente con IA',
     };
   } catch (error) {
-    console.error('[AI_ACTION_ERROR]', error);
+    console.error('💥 [SERVER_ACTION] Error en generateDetailsAction:', error);
+    console.error('🔍 [SERVER_ACTION] Detalles completos del error:', {
+      message: error instanceof Error ? error.message : 'Error desconocido',
+      stack: error instanceof Error ? error.stack : 'No stack disponible',
+      name: error instanceof Error ? error.name : 'Error sin nombre',
+      cause: error instanceof Error && error.cause ? error.cause : 'Sin causa',
+      prompt: prompt
+    });
+    
     // Devuelve un mensaje de error genérico para el usuario.
     // Los detalles del error se registran en el servidor.
-    return { 
+    return {
       message: 'No se pudo generar el contenido. Por favor, inténtalo de nuevo más tarde.',
+      errors: undefined
+    };
+  }
+}
+
+// --- AI COMPLETE GENERATION (Details + Images) --- //
+
+type GenerateCompleteState = {
+  name?: string;
+  description?: string;
+  terms?: string;
+  imageUrls?: string[];
+  message?: string | null;
+  errors?: Record<string, string[] | undefined> | undefined;
+};
+
+const GenerateCompleteSchema = z.object({
+  prompt: z.string().min(1, 'La descripción del premio es obligatoria.'),
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function generateCompleteAction(prevState: GenerateCompleteState, formData: FormData): Promise<GenerateCompleteState> {
+  const validatedFields = GenerateCompleteSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!validatedFields.success) {
+    return {
+      message: 'La validación falló.',
+      errors: validatedFields.error.flatten().fieldErrors
+    };
+  }
+
+  const { prompt } = validatedFields.data;
+
+  try {
+    // Llama al flujo completo de Genkit para generar detalles e imágenes.
+    const { generateRaffleCompleteFlow } = await import('@/ai/flows/generate-raffle-images');
+    const result = await generateRaffleCompleteFlow({ prompt });
+
+    return {
+      name: result.name,
+      description: result.description,
+      terms: result.terms,
+      imageUrls: result.imageUrls,
+      message: 'Contenido completo generado exitosamente con IA',
+    };
+  } catch (error) {
+    console.error('[AI_COMPLETE_ACTION_ERROR]', error);
+    // Devuelve un mensaje de error genérico para el usuario.
+    return {
+      message: 'No se pudo generar el contenido completo. Por favor, inténtalo de nuevo más tarde.',
       errors: undefined
     };
   }
@@ -169,29 +248,103 @@ export async function generateDetailsAction(prevState: GenerateDetailsState, for
 
 const GenerateImagesSchema = z.object({
   prompt: z.string().min(1, 'La descripción del premio es obligatoria.'),
+  raffleName: z.string().optional(),
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
 });
 
-export async function generateRaffleImagesAction(prompt: string, idToken: string): Promise<{ urls?: string[]; error?: string }> {
-  const validatedFields = GenerateImagesSchema.safeParse({ prompt, idToken });
+export async function generateRaffleImagesAction(
+  prompt: string,
+  idToken: string,
+  raffleName?: string
+): Promise<{ urls?: string[]; error?: string }> {
+  console.log('🚀 [SERVER_ACTION] Iniciando generateRaffleImagesAction');
+  console.log('📝 [SERVER_ACTION] Prompt recibido:', prompt);
+  console.log('🏷️ [SERVER_ACTION] Nombre de rifa recibido:', raffleName);
+  console.log('🔐 [SERVER_ACTION] ID Token presente:', !!idToken);
+
+  const validatedFields = GenerateImagesSchema.safeParse({ prompt, raffleName, idToken });
 
   if (!validatedFields.success) {
+    console.error('❌ [SERVER_ACTION] Error de validación:', validatedFields.error);
     return { error: 'La validación de los campos falló.' };
   }
 
+  let decodedToken;
   try {
+    console.log('🔐 [SERVER_ACTION] Verificando token de autenticación...');
     const adminAuth = getAdminAuth();
-    await adminAuth.verifyIdToken(idToken);
+    decodedToken = await adminAuth.verifyIdToken(idToken);
+    console.log('✅ [SERVER_ACTION] Token verificado para usuario:', decodedToken.uid);
   } catch (error) {
+    console.error('❌ [SERVER_ACTION] Error de autenticación:', error);
     return { error: 'Error de autenticación: El token no es válido.' };
   }
 
   try {
+    console.log('🤖 [SERVER_ACTION] Llamando flujo de generación de imágenes...');
     const { generateRaffleImagesFlow } = await import('@/ai/flows/generate-raffle-images');
-    const imageUrls = await generateRaffleImagesFlow({ description: prompt });
-    return { urls: imageUrls };
+    const imageBase64Strings = await generateRaffleImagesFlow({
+      description: prompt,
+      raffleName: raffleName
+    });
+
+    console.log('📊 [SERVER_ACTION] Imágenes recibidas del flujo:', imageBase64Strings?.length || 0);
+    console.log('🔍 [SERVER_ACTION] Tipo de imágenes:', Array.isArray(imageBase64Strings) ? 'array' : typeof imageBase64Strings);
+
+    if (!imageBase64Strings || imageBase64Strings.length === 0) {
+      console.error('❌ [SERVER_ACTION] No se recibieron imágenes del flujo');
+      return { error: 'La IA no pudo generar imágenes basadas en la descripción.' };
+    }
+
+    // Filtrar URLs de fallback si existen
+    const validBase64s = imageBase64Strings.filter(s => !s.startsWith('https'));
+    console.log('🖼️ [SERVER_ACTION] Imágenes base64 válidas:', validBase64s.length);
+    console.log('🔗 [SERVER_ACTION] URLs de fallback:', imageBase64Strings.length - validBase64s.length);
+
+    if (validBase64s.length === 0) {
+      console.log('🔄 [SERVER_ACTION] Solo URLs de fallback recibidas, devolviendo directamente');
+      // Si solo hay URLs de fallback, devolverlas directamente
+      return { urls: imageBase64Strings };
+    }
+
+    console.log('☁️ [SERVER_ACTION] Subiendo imágenes a Firebase Storage...');
+    const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`;
+    console.log('🪣 [SERVER_ACTION] Bucket name:', bucketName);
+
+    const publicUrls: string[] = [];
+
+    for (let i = 0; i < validBase64s.length; i++) {
+      const base64String = validBase64s[i];
+      console.log(`📤 [SERVER_ACTION] Subiendo imagen ${i + 1}/${validBase64s.length}`);
+
+      try {
+        const buffer = Buffer.from(base64String, 'base64');
+        console.log('📊 [SERVER_ACTION] Buffer creado, tamaño:', buffer.length, 'bytes');
+
+        const destinationPath = `generated/${decodedToken.uid}/${Date.now()}-${i}.png`;
+        console.log('📁 [SERVER_ACTION] Destination path:', destinationPath);
+
+        const publicUrl = await uploadBufferToStorage(buffer, destinationPath, 'image/png', bucketName);
+        console.log('✅ [SERVER_ACTION] Imagen subida exitosamente:', publicUrl);
+        publicUrls.push(publicUrl);
+      } catch (uploadError) {
+        console.error(`❌ [SERVER_ACTION] Error subiendo imagen ${i + 1}:`, uploadError);
+        // Continuar con las demás imágenes
+      }
+    }
+
+    console.log('🎉 [SERVER_ACTION] Proceso completado. URLs públicas generadas:', publicUrls.length);
+    return { urls: publicUrls };
+
   } catch (error) {
-    console.error('[AI_IMAGE_ACTION_ERROR]', error);
+    console.error('💥 [SERVER_ACTION] Error crítico en generateRaffleImagesAction:', error);
+    console.error('🔍 [SERVER_ACTION] Detalles del error:', {
+      message: error instanceof Error ? error.message : 'Error desconocido',
+      stack: error instanceof Error ? error.stack : 'No stack disponible',
+      prompt,
+      raffleName,
+      hasIdToken: !!idToken
+    });
     return { error: 'No se pudieron generar las imágenes. Por favor, inténtalo de nuevo.' };
   }
 }
@@ -206,21 +359,23 @@ const CreateRaffleSchema = z.object({
   slotPrice: z.coerce.number().min(1, 'El precio de la casilla es obligatorio y debe ser mayor a 0.'),
   finalizationDate: z.string().nullable().optional(), // Fecha de finalización en formato ISO string
   idToken: z.string().min(1, 'Se requiere el token de autenticación.'),
-  images: z.array(z.instanceof(File)).optional(), // Acepta un array de archivos
+  imageUrls: z.array(z.string()).optional(), // Acepta un array de URLs de imagen
 });
 
 export async function createRaffleAction(prevState: { message: string | null; success?: boolean }, formData: FormData): Promise<{ message: string | null; success?: boolean; raffleId?: string }> {
   const rawFormData = Object.fromEntries(formData.entries());
-  const images = formData.getAll('images').filter(img => img instanceof File && img.size > 0) as File[];
   
-  const validatedFields = CreateRaffleSchema.safeParse({ ...rawFormData, images });
+  // Extraer imageUrls del FormData
+  const imageUrls = formData.getAll('imageUrls[]').map(String);
+
+  const validatedFields = CreateRaffleSchema.safeParse({ ...rawFormData, imageUrls });
 
   if (!validatedFields.success) {
     console.error('[CREATE_RAFFLE_ACTION] ERROR: Validación de Zod fallida.', validatedFields.error.flatten());
     return { message: 'La validación de los campos falló.', success: false };
   }
 
-  const { idToken, images: imageFiles, ...raffleData } = validatedFields.data;
+  const { idToken, imageUrls: validatedImageUrls, ...raffleData } = validatedFields.data;
 
   let ownerId: string;
   let ownerName: string;
@@ -245,21 +400,6 @@ export async function createRaffleAction(prevState: { message: string | null; su
     const newRaffleRef = adminDb.collection('raffles').doc();
     const raffleId = newRaffleRef.id;
 
-    // Subir imágenes a Firebase Storage
-    const imageUrls: string[] = [];
-    if (imageFiles && imageFiles.length > 0) {
-      // Obtener el nombre del bucket desde variables de entorno existentes
-      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`;
-      console.log(`[CREATE_RAFFLE_ACTION] Using bucket: ${bucketName}`);
-      
-      for (const file of imageFiles) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const destinationPath = `raffles/${raffleId}/${Date.now()}-${file.name}`;
-        const publicUrl = await uploadBufferToStorage(buffer, destinationPath, file.type, bucketName);
-        imageUrls.push(publicUrl);
-      }
-    }
-
     const newRaffle: Omit<Raffle, 'id'> = {
       ...raffleData,
       ownerId,
@@ -269,7 +409,7 @@ export async function createRaffleAction(prevState: { message: string | null; su
       createdAt: new Date().toISOString(),
       finalizedAt: null,
       finalizationDate: raffleData.finalizationDate || null,
-      imageUrls, // Añadir las URLs de las imágenes
+      imageUrls: validatedImageUrls || [], // Añadir las URLs de las imágenes
       activityHistory: [{
         id: `act-${Date.now()}`,
         action: 'raffle_created',

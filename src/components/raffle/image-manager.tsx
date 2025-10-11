@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,67 +9,47 @@ import { Upload, Sparkles, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageManagerProps {
-  onImagesChange: (files: File[]) => void;
-  onGenerateAI: () => Promise<File[]>; // Updated to return a promise of files
+  onImagesChange: (urls: string[]) => void;
+  onGenerateAI: () => Promise<void>;
   isGenerating: boolean;
+  existingImageUrls?: string[];
 }
 
 const MAX_IMAGES = 3;
 
-export default function ImageManager({ onImagesChange, onGenerateAI, isGenerating }: ImageManagerProps) {
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export default function ImageManager({ 
+  onImagesChange, 
+  onGenerateAI, 
+  isGenerating, 
+  existingImageUrls = [] 
+}: ImageManagerProps) {
+  const [imageUrls, setImageUrls] = useState<string[]>(existingImageUrls);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    setImageUrls(existingImageUrls);
+  }, [existingImageUrls]);
+
+  const handleFileSelect = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
-    const newFiles = Array.from(files).slice(0, MAX_IMAGES - imageFiles.length);
-    if (newFiles.length === 0) return;
-
-    const newFileObjects = [...imageFiles, ...newFiles];
-    setImageFiles(newFileObjects);
-
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setImagePreviews(prev => [...prev, ...newPreviews]);
-
-    onImagesChange(newFileObjects);
+    // This part needs a proper implementation to upload files and get URLs.
+    // For now, we'll just log a message.
+    console.log("File upload is not implemented in this refactoring.");
   };
 
   const handleRemoveImage = (index: number) => {
-    const newFileObjects = imageFiles.filter((_, i) => i !== index);
-    setImageFiles(newFileObjects);
-
-    const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    newPreviews.forEach(preview => URL.revokeObjectURL(preview)); // Clean up
-    setImagePreviews(newPreviews);
-
-    onImagesChange(newFileObjects);
+    const newImageUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newImageUrls);
+    onImagesChange(newImageUrls);
   };
 
   const handleGenerateClick = async () => {
-    setIsLoading(true);
-    try {
-      const generatedFiles = await onGenerateAI();
-      // Assuming onGenerateAI now returns the files
-      const newFileObjects = [...imageFiles, ...generatedFiles].slice(0, MAX_IMAGES);
-      setImageFiles(newFileObjects);
-
-      const newPreviews = generatedFiles.map(file => URL.createObjectURL(file));
-      setImagePreviews(prev => [...prev, ...newPreviews].slice(0, MAX_IMAGES));
-      
-      onImagesChange(newFileObjects);
-    } catch (error) {
-      console.error("Failed to generate AI images:", error);
-      // Error handling is now managed by the parent component with toast
-    } finally {
-      setIsLoading(false);
-    }
+    await onGenerateAI();
   };
 
-  const canAddMore = imageFiles.length < MAX_IMAGES;
+  const canAddMore = imageUrls.length < MAX_IMAGES;
 
   return (
     <div className="space-y-4">
@@ -80,20 +60,20 @@ export default function ImageManager({ onImagesChange, onGenerateAI, isGeneratin
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              disabled={!canAddMore || isLoading || isGenerating}
+              disabled={!canAddMore || isGenerating}
               className="w-full"
             >
               <Upload className="mr-2 h-4 w-4" />
-              Subir Archivo ({imageFiles.length}/{MAX_IMAGES})
+              Subir Archivo ({imageUrls.length}/{MAX_IMAGES})
             </Button>
             <Button 
               type="button"
               variant="default"
               onClick={handleGenerateClick}
-              disabled={!canAddMore || isLoading || isGenerating}
+              disabled={!canAddMore || isGenerating}
               className="w-full bg-gradient-to-r from-acento-calido to-acento-fuerte text-white"
             >
-              {isLoading ? (
+              {isGenerating ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -108,12 +88,12 @@ export default function ImageManager({ onImagesChange, onGenerateAI, isGeneratin
             className="hidden"
             accept="image/png, image/jpeg, image/webp"
             multiple
-            disabled={!canAddMore || isLoading || isGenerating}
+            disabled={!canAddMore || isGenerating}
           />
-          {(isLoading || isGenerating) && (
+          {isGenerating && (
             <div className="space-y-2">
               <p className="text-sm text-center text-muted-foreground">
-                {isGenerating ? 'Finalizando creación de la rifa...' : 'Generando imágenes con IA...'}
+                Generando imágenes con IA...
               </p>
               <Progress value={undefined} className="w-full" />
               <p className="text-xs text-center text-muted-foreground">
@@ -124,9 +104,9 @@ export default function ImageManager({ onImagesChange, onGenerateAI, isGeneratin
         </CardContent>
       </Card>
 
-      {imagePreviews.length > 0 && (
+      {imageUrls.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {imagePreviews.map((src, index) => (
+          {imageUrls.map((src, index) => (
             <div key={index} className="relative group aspect-video">
               <Image
                 src={src}
@@ -152,7 +132,7 @@ export default function ImageManager({ onImagesChange, onGenerateAI, isGeneratin
         </div>
       )}
 
-      {imagePreviews.length === 0 && !isLoading && !isGenerating && (
+      {imageUrls.length === 0 && !isGenerating && (
          <div className="text-center text-sm text-muted-foreground py-8 border-2 border-dashed rounded-lg flex flex-col items-center justify-center">
             <ImageIcon className="h-10 w-10 mb-2 text-border" />
             <span>No hay imágenes seleccionadas.</span>

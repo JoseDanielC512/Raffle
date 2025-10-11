@@ -57,7 +57,7 @@ export function CreateRaffleForm() {
   const [isCreating, setIsCreating] = useState(false);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [hasGeneratedData, setHasGeneratedData] = useState(false);
-  const [imageFiles, setImageFiles] = useState<File[]>([]); // Estado para los archivos de imagen
+  const [imageUrls, setImageUrls] = useState<string[]>([]); // Estado para las URLs de imagen
 
   useEffect(() => {
     if (user) {
@@ -120,14 +120,14 @@ export function CreateRaffleForm() {
     return errors;
   };
 
-  const handleGenerateAIImages = async (): Promise<File[]> => {
+  const handleGenerateAIImages = async () => {
     if (!description.trim()) {
       toast({
         title: 'Descripción requerida',
         description: 'Por favor, escribe una descripción del premio para generar las imágenes.',
         variant: 'destructive',
       });
-      return [];
+      return;
     }
 
     setIsGeneratingImages(true);
@@ -137,16 +137,9 @@ export function CreateRaffleForm() {
         throw new Error(result.error || 'No se recibieron URLs de las imágenes.');
       }
 
-      toast({ title: 'Imágenes generadas', description: 'Ahora se están descargando para adjuntarlas.', variant: 'success' });
+      toast({ title: 'Imágenes generadas', description: 'Las imágenes generadas por IA están listas.', variant: 'success' });
 
-      // Convert URLs to File objects
-      const files = await Promise.all(result.urls.map(async (url, index) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return new File([blob], `ai-generated-${index + 1}.png`, { type: 'image/png' });
-      }));
-
-      return files;
+      setImageUrls(prev => [...prev, ...result.urls!]);
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
@@ -155,7 +148,6 @@ export function CreateRaffleForm() {
         description: errorMessage,
         variant: 'destructive',
       });
-      return []; // Return empty array on failure
     } finally {
       setIsGeneratingImages(false);
     }
@@ -178,9 +170,9 @@ export function CreateRaffleForm() {
     setIsCreating(true);
     const formData = new FormData(event.currentTarget);
 
-    // Adjuntar archivos de imagen al FormData
-    imageFiles.forEach((file) => {
-      formData.append('images', file);
+    // Adjuntar URLs de imagen al FormData
+    imageUrls.forEach((url) => {
+      formData.append('imageUrls[]', url);
     });
     
     try {
@@ -342,7 +334,8 @@ export function CreateRaffleForm() {
             <div className="space-y-2">
               <Label>Imágenes de la Rifa</Label>
               <ImageManager 
-                onImagesChange={setImageFiles} 
+                existingImageUrls={imageUrls}
+                onImagesChange={setImageUrls} 
                 onGenerateAI={handleGenerateAIImages}
                 isGenerating={isGeneratingImages || isCreating}
               />
